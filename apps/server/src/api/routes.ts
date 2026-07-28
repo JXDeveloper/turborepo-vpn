@@ -57,7 +57,7 @@ interface PeerRecord {
   id: string;
   publicKey: string;
   allocatedIp: string;
-  status: "active";
+  status: "active" | "revoked";
   createdAt: string;
 }
 
@@ -204,7 +204,7 @@ PrivateKey = <CLIENT_PRIVATE_KEY>
 Address = ${allocatedIp}/32
 DNS = 10.10.1.1
 
-[Peer]sole.log("Network Interfaces:", networkInterfaces);
+[Peer]
 
 PublicKey = ${serverPublicKey}
 Endpoint = ${endpoint}
@@ -306,13 +306,51 @@ const getTunnelStatus: Handler = async (c) => {
   });
 };
 
-const revokePeer: Handler = (c) => {
-  const secret = process.env.BACKEND_API_SECRET;
-  if (!secret) {
-    throw new Error("unable to load env deletePeer");
+const listPeers: Handler = (c) => {
+  return c.json({ peers: Array.from(peerStore.values()) });
+};
+
+const getPeer: Handler = (c) => {
+  const peerId = c.req.param("peerId");
+  if (!peerId) {
+    return c.json({ message: "peer id is required" }, 400);
   }
 
-  return c.json({ message: "all good delete peer" });
+  const peer = peerStore.get(peerId);
+  if (!peer) {
+    return c.json({ message: "peer not found" }, 404);
+  }
+
+  return c.json({ peer });
+};
+
+const revokePeer: Handler = async (c) => {
+  const peerId = c.req.param("peerId");
+  if (!peerId) {
+    return c.json({ message: "peer id is required" }, 400);
+  }
+
+  const peer = peerStore.get(peerId);
+  if (!peer) {
+    return c.json({ message: "peer not found" }, 404);
+  }
+
+  if (peer.status === "revoked") {
+    return c.json({ message: "peer already revoked", peer });
+  }
+
+  try {
+    const wgConfig = wgServerInstance || (await initWgServerTunnel());
+    wgConfig.removePeer(peer.publicKey);
+    await wgConfig.writeToFile();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "unable to revoke peer";
+    return c.json({ message }, 500);
+  }
+
+  peer.status = "revoked";
+  peerStore.set(peer.id, peer);
+  return c.json({ message: "peer revoked", peer });
 };
 
 api.use("*", ControlPanelAuthMiddleware);
@@ -321,6 +359,8 @@ api.post("/peers", createPeer);
 api.post("/tunnel/up", toggleTunnelUp);
 api.post("/tunnel/down", toggleTunnelDown);
 api.get("/tunnel/status", getTunnelStatus);
-api.delete("", revokePeer);
+api.get("/peers", listPeers);
+api.get("/peers/:peerId", getPeer);
+api.delete("/peers/:peerId", revokePeer);
 
 export default api;
