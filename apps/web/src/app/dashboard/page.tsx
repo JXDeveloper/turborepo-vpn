@@ -28,7 +28,10 @@ export default function DashboardPage() {
           <h1 className="mt-1 text-3xl font-bold tracking-tight">Control panel</h1>
           <p className="mt-2 max-w-2xl text-slate-400">Monitor the WireGuard exit node and provision client peers.</p>
         </div>
-        <Link href="/dashboard/peers/new" className="rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-sky-400">
+        <Link
+          href="/dashboard/peers/new"
+          className="rounded-lg bg-sky-500 px-4 py-2.5 text-sm font-semibold text-slate-950 hover:bg-sky-400"
+        >
           Create peer
         </Link>
       </section>
@@ -36,7 +39,11 @@ export default function DashboardPage() {
       {error && <p className="rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <Metric label="Tunnel state" value={status?.status || "Loading"} accent={status?.status === "active" ? "text-emerald-400" : "text-amber-300"} />
+        <Metric
+          label="Tunnel state"
+          value={status?.status || "Loading"}
+          accent={status?.status === "active" ? "text-emerald-400" : "text-amber-300"}
+        />
         <Metric label="Active peers" value={String(activePeers)} />
         <Metric label="Endpoint" value={status?.endpoint || "—"} />
       </section>
@@ -48,12 +55,25 @@ export default function DashboardPage() {
             <Row label="WAN interface" value={status?.wanInterface || "Loading…"} />
             <Row label="Assigned peer records" value={String(peers.length)} />
           </dl>
-          <Link href="/dashboard/tunnel" className="mt-6 inline-block text-sm font-medium text-sky-400 hover:text-sky-300">Manage tunnel →</Link>
+          <Link
+            href="/dashboard/tunnel"
+            className="mt-6 inline-block text-sm font-medium text-sky-400 hover:text-sky-300"
+          >
+            Manage tunnel →
+          </Link>
         </article>
         <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
           <h2 className="font-semibold">Peer provisioning</h2>
-          <p className="mt-3 text-sm leading-6 text-slate-400">A client keypair is generated only when a peer is created. The private key is returned once in the WireGuard configuration QR code.</p>
-          <Link href="/dashboard/peers" className="mt-6 inline-block text-sm font-medium text-sky-400 hover:text-sky-300">View peers →</Link>
+          <p className="mt-3 text-sm leading-6 text-slate-400">
+            A client keypair is generated only when a peer is created. The private key is returned once in the WireGuard
+            configuration QR code.
+          </p>
+          <Link
+            href="/dashboard/peers"
+            className="mt-6 inline-block text-sm font-medium text-sky-400 hover:text-sky-300"
+          >
+            View peers →
+          </Link>
         </article>
       </section>
     </div>
@@ -61,9 +81,19 @@ export default function DashboardPage() {
 }
 
 function Metric({ label, value, accent = "text-slate-100" }: { label: string; value: string; accent?: string }) {
-  return <article className="rounded-xl border border-slate-800 bg-slate-900 p-5"><p className="text-sm text-slate-400">{label}</p><p className={`mt-2 truncate text-2xl font-semibold ${accent}`}>{value}</p></article>;
+  return (
+    <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
+      <p className="text-sm text-slate-400">{label}</p>
+      <p className={`mt-2 truncate text-2xl font-semibold ${accent}`}>{value}</p>
+    </article>
+  );
 }
 
 function Row({ label, value }: { label: string; value: string }) {
-  return <div className="flex justify-between gap-4"><dt className="text-slate-400">{label}</dt><dd className="text-right font-medium text-slate-200">{value}</dd></div>;
+  return (
+    <div className="flex justify-between gap-4">
+      <dt className="text-slate-400">{label}</dt>
+      <dd className="text-right font-medium text-slate-200">{value}</dd>
+    </div>
+  );
 }

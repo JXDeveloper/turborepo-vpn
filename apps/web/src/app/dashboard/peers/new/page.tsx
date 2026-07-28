@@ -57,7 +57,7 @@ export default function NewPeerPage() {
           <h2 className="mt-1 text-xl font-semibold">{result.peer.allocatedIp}/32</h2>
           <div className="mt-6 flex flex-wrap gap-8">
             <div className="rounded-xl bg-white p-4">
-              <QRCodeSVG value={result.clientConfig} size={220} level="M" includeMargin />
+              <QRCodeSVG value={result.clientConfig} size={220} level="M" />
             </div>
             <div className="min-w-72 flex-1">
               <p className="text-sm text-slate-400">
