@@ -227,20 +227,30 @@ const ControlPanelAuthMiddleware = createMiddleware(async (c, next) => {
 
   const secret = process.env.BACKEND_API_SECRET;
   if (!secret) {
-    throw new Error("unable to load env createPeer");
+    return c.json({ message: "authentication is not configured" }, 500);
+  }
+
+  let body: payload;
+  try {
+    body = await c.req.json<payload>();
+  } catch {
+    return c.json({ message: "invalid JSON request body" }, 400);
+  }
+
+  if (typeof body.signature !== "string" || typeof body.data?.str !== "string") {
+    return c.json({ message: "signature and signed data are required" }, 401);
   }
 
   try {
-    const body = await c.req.json<payload>();
-    if (body.signature && (await verifySignature(secret, body.data?.str ?? "", body.signature))) {
-      c.set(REQUEST_BODY_KEY, body);
-    } else {
-      c.set(REQUEST_BODY_KEY, body);
+    const isValid = await verifySignature(secret, body.data.str, body.signature);
+    if (!isValid) {
+      return c.json({ message: "invalid request signature" }, 401);
     }
   } catch {
-    // If request body is not JSON or not signed
+    return c.json({ message: "invalid request signature" }, 401);
   }
 
+  c.set(REQUEST_BODY_KEY, body);
   await next();
 });
 
