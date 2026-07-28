@@ -3,7 +3,7 @@ import path from "node:path";
 import os from "node:os";
 import { execSync } from "node:child_process";
 import { verifySignature } from "@my-vpn/crypto-utils";
-import { Hono, type Handler } from "hono";
+import { Context, Hono, type Handler, type Next } from "hono";
 import { createMiddleware } from "hono/factory";
 import { WgConfig } from "wireguard-tools";
 
@@ -204,7 +204,8 @@ PrivateKey = <CLIENT_PRIVATE_KEY>
 Address = ${allocatedIp}/32
 DNS = 10.10.1.1
 
-[Peer]
+[Peer]sole.log("Network Interfaces:", networkInterfaces);
+
 PublicKey = ${serverPublicKey}
 Endpoint = ${endpoint}
 AllowedIPs = 0.0.0.0/0, ::/0
@@ -220,7 +221,7 @@ AllowedIPs = 0.0.0.0/0, ::/0
   };
 }
 
-const ControlPanelAuthMiddleware = createMiddleware(async (c, next) => {
+const ControlPanelAuthMiddleware = createMiddleware(async (c: Context, next: Next) => {
   if (c.req.method === "GET") {
     return await next();
   }

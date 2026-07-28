@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.6.2",
     "@my-vpn/crypto-utils": "workspace:^",
     "next": "16.2.11",
     "qrcode.react": "^4.2.0",
