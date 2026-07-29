@@ -3,6 +3,8 @@
 import crypto from "node:crypto";
 import { auth } from "@clerk/nextjs/server";
 import { generateSignature } from "@my-vpn/crypto-utils";
+import { exitNodes } from "@/db/schema";
+import { db } from "@/db/db";
 
 export interface Peer {
   id: string;
@@ -41,7 +43,11 @@ async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-async function signedApiRequest<T>(path: string, method: "POST" | "DELETE", payload: Record<string, unknown> = {}): Promise<T> {
+async function signedApiRequest<T>(
+  path: string,
+  method: "POST" | "DELETE",
+  payload: Record<string, unknown> = {},
+): Promise<T> {
   await requireAdmin();
   const secret = process.env.BACKEND_API_SECRET;
   if (!secret) {
@@ -102,4 +108,22 @@ export async function setTunnelState(state: "up" | "down"): Promise<{ message: s
 export async function revokePeer(peerId: string): Promise<Peer> {
   const result = await signedApiRequest<{ peer: Peer }>(`/peers/${encodeURIComponent(peerId)}`, "DELETE", { peerId });
   return result.peer;
+}
+
+interface ExitNode {
+  id: string;
+  publicKey: string;
+  publicIp: string;
+  portNo: number;
+}
+
+export async function getExitNodes(): Promise<ExitNode> {
+  const exitNode = await db.select().from(exitNodes);
+  const data: ExitNode = {
+    id: exitNode[0].id,
+    publicKey: exitNode[0].publicKey,
+    publicIp: exitNode[0].publicIp,
+    portNo: exitNode[0].portNo,
+  };
+  return data;
 }

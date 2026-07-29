@@ -2,8 +2,17 @@
 
 import Link from "next/link";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
+import { getExitNodes } from "./action";
+import { useEffect, useTransition } from "react";
 
 export default function Home() {
+  const [_, startTransition] = useTransition();
+  useEffect(() => {
+    startTransition(async () => {
+      const exitNodes = await getExitNodes();
+      console.log(exitNodes);
+    });
+  }, []);
   return (
     <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">

@@ -11,6 +11,8 @@
   "dependencies": {
     "@clerk/nextjs": "^7.6.2",
     "@my-vpn/crypto-utils": "workspace:^",
+    "@neondatabase/serverless": "^1.1.0",
+    "drizzle-orm": "1.0.0-rc.4",
     "next": "16.2.11",
     "qrcode.react": "^4.2.0",
     "react": "19.2.4",
@@ -22,6 +24,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
+    "drizzle-kit": "1.0.0-rc.4",
     "eslint": "^9",
     "eslint-config-next": "16.2.11",
     "tailwindcss": "^4",
