@@ -80,6 +80,7 @@ let tunnelState: "active" | "inactive" = "inactive";
 const SERVER_CONFIG_DIR = path.join(process.cwd(), "configs");
 const SERVER_CONFIG_PATH = path.join(SERVER_CONFIG_DIR, "wg0.conf");
 let wgServerInstance: WgConfig | null = null;
+let wgServerLoadPromise: Promise<WgConfig> | null = null;
 
 async function generateWireGuardKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
   const { publicKey, privateKey } = (await crypto.subtle.generateKey({ name: "X25519" }, true, [
@@ -102,7 +103,7 @@ async function generateWireGuardKeyPair(): Promise<{ publicKey: string; privateK
 /**
  * Creates/initializes the server wg0 WireGuard tunnel configuration file with IPTables NAT rules
  */
-export async function initWgServerTunnel(configPath: string = SERVER_CONFIG_PATH): Promise<WgConfig> {
+async function loadWgServerTunnel(configPath: string): Promise<WgConfig> {
   const dirPath = path.dirname(configPath);
   if (!fs.existsSync(dirPath)) {
     fs.mkdirSync(dirPath, { recursive: true });
@@ -131,6 +132,8 @@ export async function initWgServerTunnel(configPath: string = SERVER_CONFIG_PATH
 
   if (fs.existsSync(configPath)) {
     await wgConfig.parseFile(configPath);
+    const peerCount = wgConfig.peers?.length ?? 0;
+    nextIpIndex = peerCount > 0 ? peerCount + 2 : 2;
   } else {
     try {
       await wgConfig.generateKeys();
@@ -142,8 +145,29 @@ export async function initWgServerTunnel(configPath: string = SERVER_CONFIG_PATH
     await wgConfig.writeToFile(configPath);
   }
 
-  wgServerInstance = wgConfig;
   return wgConfig;
+}
+
+/**
+ * Loads the server WireGuard configuration once and reuses it for later requests.
+ */
+export async function initWgServerTunnel(configPath: string = SERVER_CONFIG_PATH): Promise<WgConfig> {
+  if (wgServerInstance) {
+    return wgServerInstance;
+  }
+
+  if (!wgServerLoadPromise) {
+    wgServerLoadPromise = loadWgServerTunnel(configPath)
+      .then((wgConfig) => {
+        wgServerInstance = wgConfig;
+        return wgConfig;
+      })
+      .finally(() => {
+        wgServerLoadPromise = null;
+      });
+  }
+
+  return wgServerLoadPromise;
 }
 
 /**

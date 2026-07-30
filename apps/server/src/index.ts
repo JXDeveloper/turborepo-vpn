@@ -1,6 +1,6 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import api from "./api/routes.js";
+import api, { initWgServerTunnel } from "./api/routes.js";
 
 const app = new Hono();
 
@@ -10,6 +10,8 @@ app.get("/", (c) => {
 });
 
 app.route("/api", api);
+
+await initWgServerTunnel();
 
 serve(
   {
