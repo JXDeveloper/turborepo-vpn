@@ -9,8 +9,8 @@
   "dependencies": {
     "@hono/node-server": "^2.0.11",
     "@my-vpn/crypto-utils": "workspace:^",
-    "hono": "^4.12.31",
-    "wireguard-tools": "^0.1.0"
+    "@shurahbil/wireguard-tools-2": "^0.1.1",
+    "hono": "^4.12.31"
   },
   "devDependencies": {
     "@types/node": "^26.1.1",

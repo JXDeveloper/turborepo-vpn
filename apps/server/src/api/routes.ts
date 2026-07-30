@@ -5,7 +5,7 @@ import { execSync } from "node:child_process";
 import { verifySignature } from "@my-vpn/crypto-utils";
 import { Context, Hono, type Handler, type Next } from "hono";
 import { createMiddleware } from "hono/factory";
-import { WgConfig } from "wireguard-tools";
+import { WgConfig } from "@shurahbil/wireguard-tools-2";
 
 function getEndpointAddress(): string {
   if (process.env.WG_ENDPOINT) {
@@ -297,7 +297,7 @@ const createPeer: Handler = async (c) => {
 const toggleTunnelUp: Handler = async (c) => {
   const wgConfig = await initWgServerTunnel();
   try {
-    await wgConfig.up();
+    await wgConfig.upSudo();
     tunnelState = "active";
     return c.json({ message: "Exit Node wg0 interface brought UP successfully", status: "active" });
   } catch (error) {
@@ -310,7 +310,7 @@ const toggleTunnelUp: Handler = async (c) => {
 const toggleTunnelDown: Handler = async (c) => {
   const wgConfig = await initWgServerTunnel();
   try {
-    await wgConfig.down();
+    await wgConfig.downSudo();
     tunnelState = "inactive";
     return c.json({ message: "Exit Node wg0 interface brought DOWN successfully", status: "inactive" });
   } catch (error) {

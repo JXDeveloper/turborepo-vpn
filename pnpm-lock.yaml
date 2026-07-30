@@ -26,12 +26,12 @@ importers:
       '@my-vpn/crypto-utils':
         specifier: workspace:^
         version: link:../../packages/crypto-utils
+      '@shurahbil/wireguard-tools-2':
+        specifier: ^0.1.1
+        version: 0.1.1
       hono:
         specifier: ^4.12.31
         version: 4.12.31
-      wireguard-tools:
-        specifier: ^0.1.0
-        version: 0.1.0
     devDependencies:
       '@types/node':
         specifier: ^26.1.1
@@ -847,6 +847,9 @@ packages:
 
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
+
+  '@shurahbil/wireguard-tools-2@0.1.1':
+    resolution: {integrity: sha512-rrPyatiEro2SLDUvxl3arK3yfHWpJm0B5rsFy1LRxRGSYrg+yfyR5DqKhWJy+G+okW4eUjM4CriVCWcRYpbkpg==}
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
@@ -2742,9 +2745,6 @@ packages:
     engines: {node: '>= 8'}
     hasBin: true
 
-  wireguard-tools@0.1.0:
-    resolution: {integrity: sha512-oBnnSB6wXGEAB1ZVPfbfpX8WlHNw7wv45r13ILX73felVnrGpMxMjFcKGAsMeRfBOGzXcW0LgAWe+T53dRcI+g==}
-
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
@@ -3325,6 +3325,10 @@ snapshots:
   '@nolyfill/is-core-module@1.0.39': {}
 
   '@rtsao/scc@1.1.0': {}
+
+  '@shurahbil/wireguard-tools-2@0.1.1':
+    dependencies:
+      lodash.mergewith: 4.6.2
 
   '@stablelib/base64@1.0.1': {}
 
@@ -5343,10 +5347,6 @@ snapshots:
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
-
-  wireguard-tools@0.1.0:
-    dependencies:
-      lodash.mergewith: 4.6.2
 
   word-wrap@1.2.5: {}
 
