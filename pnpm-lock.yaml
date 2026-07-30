@@ -27,8 +27,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/crypto-utils
       '@shurahbil/wireguard-tools-2':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       hono:
         specifier: ^4.12.31
         version: 4.12.31
@@ -848,8 +848,8 @@ packages:
   '@rtsao/scc@1.1.0':
     resolution: {integrity: sha512-zt6OdqaDoOnJ1ZYsCYGt9YmWzDXl4vQdKTyJev62gFhRGKdx7mcT54V9KIjg+d2wi9EXsPvAPKe7i7WjfVWB8g==}
 
-  '@shurahbil/wireguard-tools-2@0.1.1':
-    resolution: {integrity: sha512-rrPyatiEro2SLDUvxl3arK3yfHWpJm0B5rsFy1LRxRGSYrg+yfyR5DqKhWJy+G+okW4eUjM4CriVCWcRYpbkpg==}
+  '@shurahbil/wireguard-tools-2@0.1.2':
+    resolution: {integrity: sha512-VwDEzNAngH5jsn5vTxrEE0nQRAYiQ/HMaWtHHLO/hrXj4r+yrTJbC6F5JG2set2RQ2KRTU9r+R6F1/iBiGAmyw==}
 
   '@stablelib/base64@1.0.1':
     resolution: {integrity: sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ==}
@@ -3326,7 +3326,7 @@ snapshots:
 
   '@rtsao/scc@1.1.0': {}
 
-  '@shurahbil/wireguard-tools-2@0.1.1':
+  '@shurahbil/wireguard-tools-2@0.1.2':
     dependencies:
       lodash.mergewith: 4.6.2
 
