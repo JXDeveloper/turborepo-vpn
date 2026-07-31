@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const activePeers = peers.filter((peer) => peer.status === "active").length;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 py-24">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-sky-400">Exit node administration</p>

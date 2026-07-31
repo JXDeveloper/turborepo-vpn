@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { getExitNodes } from "./action";
-import { useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
+import Navbar from "./components/navbar";
 
 export default function Home() {
   const [_, startTransition] = useTransition();
@@ -14,43 +15,45 @@ export default function Home() {
     });
   }, []);
   return (
-    <main className="min-h-screen overflow-hidden bg-slate-950 text-slate-100">
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
-        <Link href="/" className="font-semibold tracking-tight text-sky-400">
-          VPN Control Panel
-        </Link>
-        <div className="flex items-center gap-3">
-          <Show when="signed-out">
-            <SignInButton>
-              <button
-                type="button"
-                className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:text-white"
-              >
-                Sign in
-              </button>
-            </SignInButton>
-            <SignUpButton>
-              <button
-                type="button"
+    <main className="min-h-screen overflow-hidden bg-gray-900 text-slate-100">
+      <Navbar>
+        <div className="flex items-center justify-between">
+          <Link href="/" className="font-semibold tracking-tight text-sky-200">
+            VPN Control Panel
+          </Link>
+          <div className="flex items-center gap-3">
+            <Show when="signed-out">
+              <SignInButton>
+                <button
+                  type="button"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:text-white"
+                >
+                  Sign in
+                </button>
+              </SignInButton>
+              <SignUpButton>
+                <button
+                  type="button"
+                  className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400"
+                >
+                  Create account
+                </button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <Link
+                href="/dashboard"
                 className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400"
               >
-                Create account
-              </button>
-            </SignUpButton>
-          </Show>
-          <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400"
-            >
-              Open dashboard
-            </Link>
-            <UserButton />
-          </Show>
+                Open dashboard
+              </Link>
+              <UserButton />
+            </Show>
+          </div>
         </div>
-      </header>
+      </Navbar>
 
-      <section className="mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-20 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:pt-28">
+      <section className="mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-30 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:pt-28">
         <div>
           <p className="inline-flex rounded-full border border-sky-900 bg-sky-950/60 px-3 py-1 text-sm font-medium text-sky-300">
             WireGuard exit-node administration

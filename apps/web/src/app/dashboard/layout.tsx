@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { auth } from "@clerk/nextjs/server";
+import Navbar from "../components/navbar";
 
 const navigation = [
   { href: "/dashboard", label: "Overview" },
@@ -13,8 +14,9 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100">
-      <header className="border-b border-slate-800 bg-slate-900/80">
-        <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between gap-6 px-5">
+      {/* <header className="border-b border-slate-800 bg-slate-900/80"> */}
+      <Navbar>
+        <div className="mx-auto flex min-h-8 max-w-6xl items-center justify-between gap-6 px-5">
           <Link href="/dashboard" className="font-semibold tracking-tight text-sky-400">
             VPN Control Panel
           </Link>
@@ -31,7 +33,8 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
             <UserButton />
           </nav>
         </div>
-      </header>
+        {/* </header> */}
+      </Navbar>
       <main className="mx-auto max-w-6xl px-5 py-10">{children}</main>
     </div>
   );
