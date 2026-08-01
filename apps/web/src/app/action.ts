@@ -117,13 +117,17 @@ interface ExitNode {
   portNo: number;
 }
 
-export async function getExitNodes(): Promise<ExitNode> {
-  const exitNode = await db.select().from(exitNodes);
-  const data: ExitNode = {
-    id: exitNode[0].id,
-    publicKey: exitNode[0].publicKey,
-    publicIp: exitNode[0].publicIp,
-    portNo: exitNode[0].portNo,
-  };
-  return data;
+export async function getExitNodes(): Promise<ExitNode | void> {
+  try {
+    const exitNode = await db.select().from(exitNodes);
+    const data: ExitNode = {
+      id: exitNode[0].id,
+      publicKey: exitNode[0].publicKey,
+      publicIp: exitNode[0].publicIp,
+      portNo: exitNode[0].portNo,
+    };
+    return data;
+  } catch {
+    console.log("there was an error trying to run db operation");
+  }
 }
