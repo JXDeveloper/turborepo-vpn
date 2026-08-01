@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from "react";
 
-export default function Navbar({ children }: Readonly<{ children: ReactNode }>): ReactNode {
+export default function Navbar({ children }: { readonly children: ReactNode }): ReactNode {
   const [isScrolled, setIsScrolled] = useState<boolean>(false);
 
   useEffect(() => {
