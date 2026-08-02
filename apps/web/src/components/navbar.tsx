@@ -24,8 +24,8 @@ export default function Navbar({ children }: { readonly children: ReactNode }): 
         className={`mx-auto max-w-6xl rounded-2xl px-6 py-4 transition-all duration-300 ease-out-back
           ${
             isScrolled
-              ? "border border-white/20 bg-white/10 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-3xl mt-2"
-              : "scale-100 border border-transparent bg-transparent shadow-none backdrop-blur-none mt-0"
+              ? "mt-2 border border-border/60 bg-background/80 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] backdrop-blur-3xl"
+              : "mt-0 scale-100 border border-transparent bg-transparent shadow-none backdrop-blur-none"
           }
         `}
       >

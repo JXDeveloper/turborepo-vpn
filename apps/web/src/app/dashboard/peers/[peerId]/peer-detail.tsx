@@ -30,23 +30,23 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
 
   return (
     <div className="max-w-2xl">
-      <Link href="/dashboard/peers" className="text-sm text-sky-400 hover:text-sky-300">
+      <Link href="/dashboard/peers" className="text-sm text-primary hover:text-primary/80">
         ← All peers
       </Link>
-      {error && <p className="mt-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
-      {!peer && !error && <p className="mt-6 text-slate-400">Loading peer…</p>}
+      {error && <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      {!peer && !error && <p className="mt-6 text-muted-foreground">Loading peer…</p>}
       {peer && (
-        <section className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-6">
+        <section className="mt-6 rounded-xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-sm text-slate-400">Peer</p>
+              <p className="text-sm text-muted-foreground">Peer</p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{peer.id}</h1>
             </div>
             <span
               className={
                 peer.status === "active"
-                  ? "rounded-full bg-emerald-950 px-3 py-1 text-sm text-emerald-400"
-                  : "rounded-full bg-slate-800 px-3 py-1 text-sm text-slate-400"
+                  ? "rounded-full bg-success/10 px-3 py-1 text-sm text-success"
+                  : "rounded-full bg-muted px-3 py-1 text-sm text-muted-foreground"
               }
             >
               {peer.status}
@@ -62,7 +62,7 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
               type="button"
               onClick={handleRevoke}
               disabled={revoking}
-              className="mt-8 rounded-lg border border-red-900 px-4 py-2.5 text-sm font-semibold text-red-300 hover:bg-red-950 disabled:opacity-60"
+              className="mt-8 rounded-lg border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-60"
             >
               {revoking ? "Revoking…" : "Revoke peer"}
             </button>
@@ -76,8 +76,8 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
 function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div>
-      <dt className="text-slate-400">{label}</dt>
-      <dd className={`mt-1 break-all text-slate-100 ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className={`mt-1 break-all text-foreground ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
     </div>
   );
 }

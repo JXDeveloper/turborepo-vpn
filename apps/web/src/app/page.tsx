@@ -15,36 +15,27 @@ export default function Home() {
     });
   }, []);
   return (
-    <main className="min-h-screen overflow-hidden bg-gray-900 text-slate-100">
+    <main className="min-h-screen overflow-hidden bg-background text-foreground">
       <Navbar>
         <div className="flex items-center justify-between">
-          <Link href="/" className="font-semibold tracking-tight text-sky-200">
+          <Link href="/" className="font-semibold tracking-tight text-primary">
             VPN Control Panel
           </Link>
           <div className="flex items-center gap-3">
             <Show when="signed-out">
               <SignInButton>
-                <button
-                  type="button"
-                  className="rounded-lg px-3 py-2 text-sm font-medium text-slate-300 hover:text-white"
-                >
+                <button type="button" className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
                   Sign in
                 </button>
               </SignInButton>
               <SignUpButton>
-                <button
-                  type="button"
-                  className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400"
-                >
+                <button type="button" className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                   Create account
                 </button>
               </SignUpButton>
             </Show>
             <Show when="signed-in">
-              <Link
-                href="/dashboard"
-                className="rounded-lg bg-sky-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-sky-400"
-              >
+              <Link href="/dashboard" className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                 Open dashboard
               </Link>
               <UserButton />
@@ -55,53 +46,44 @@ export default function Home() {
 
       <section className="mx-auto grid max-w-6xl gap-12 px-5 pb-20 pt-30 lg:grid-cols-[1.2fr_0.8fr] lg:items-center lg:pt-28">
         <div>
-          <p className="inline-flex rounded-full border border-sky-900 bg-sky-950/60 px-3 py-1 text-sm font-medium text-sky-300">
+          <p className="inline-flex rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
             WireGuard exit-node administration
           </p>
-          <h1 className="mt-6 max-w-3xl text-5xl font-bold tracking-tight text-white sm:text-6xl">
+          <h1 className="mt-6 max-w-3xl text-5xl font-bold tracking-tight text-foreground sm:text-6xl">
             Operate your VPN without losing sight of the network.
           </h1>
-          <p className="mt-6 max-w-2xl text-lg leading-8 text-slate-400">
+          <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
             Provision peers, distribute secure WireGuard configurations, and manage the live exit-node tunnel from one
             protected control panel.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Show when="signed-out">
               <SignUpButton>
-                <button
-                  type="button"
-                  className="rounded-lg bg-sky-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-sky-400"
-                >
+                <button type="button" className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                   Get started
                 </button>
               </SignUpButton>
               <SignInButton>
-                <button
-                  type="button"
-                  className="rounded-lg border border-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 hover:border-slate-500 hover:bg-slate-900"
-                >
+                <button type="button" className="rounded-lg border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground hover:border-border/80 hover:bg-muted">
                   Sign in to dashboard
                 </button>
               </SignInButton>
             </Show>
             <Show when="signed-in">
-              <Link
-                href="/dashboard"
-                className="rounded-lg bg-sky-500 px-5 py-3 text-sm font-semibold text-slate-950 hover:bg-sky-400"
-              >
+              <Link href="/dashboard" className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
                 Open dashboard
               </Link>
             </Show>
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl shadow-sky-950/30">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-5">
+        <div className="rounded-2xl border border-border bg-card/80 p-6 shadow-2xl shadow-primary/10">
+          <div className="flex items-center justify-between border-b border-border pb-5">
             <div>
-              <p className="text-sm text-slate-400">Exit node</p>
-              <p className="mt-1 font-semibold">wg0</p>
+              <p className="text-sm text-muted-foreground">Exit node</p>
+              <p className="mt-1 font-semibold text-foreground">wg0</p>
             </div>
-            <span className="rounded-full bg-emerald-950 px-3 py-1 text-sm font-medium text-emerald-400">
+            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">
               Operational
             </span>
           </div>
@@ -113,7 +95,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="border-t border-slate-900 bg-slate-900/40">
+      <section className="border-t border-border bg-card/40">
         <div className="mx-auto grid max-w-6xl gap-6 px-5 py-14 md:grid-cols-3">
           <Feature
             title="Peer management"
@@ -136,17 +118,17 @@ export default function Home() {
 function StatusRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-start justify-between gap-4">
-      <dt className="text-slate-400">{label}</dt>
-      <dd className="text-right font-medium text-slate-200">{value}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium text-foreground">{value}</dd>
     </div>
   );
 }
 
 function Feature({ title, description }: { title: string; description: string }) {
   return (
-    <article className="rounded-xl border border-slate-800 bg-slate-950/60 p-5">
-      <h2 className="font-semibold text-slate-100">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-slate-400">{description}</p>
+    <article className="rounded-xl border border-border bg-card/70 p-5">
+      <h2 className="font-semibold text-foreground">{title}</h2>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
     </article>
   );
 }

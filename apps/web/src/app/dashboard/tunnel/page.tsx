@@ -30,25 +30,25 @@ export default function TunnelPage() {
 
   return (
     <div className="max-w-3xl">
-      <p className="text-sm font-medium text-sky-400">WireGuard interface</p>
+      <p className="text-sm font-medium text-primary">WireGuard interface</p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Exit node</h1>
-      <p className="mt-3 text-[15px] leading-7 text-slate-400">The controls below change the live wg0 interface on the exit node.</p>
-      {error && <p className="mt-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
-      <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
+      <p className="mt-3 text-[15px] leading-7 text-muted-foreground">The controls below change the live wg0 interface on the exit node.</p>
+      {error && <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm text-slate-400">Current status</p>
+            <p className="text-sm text-muted-foreground">Current status</p>
             <p
               className={
                 status?.status === "active"
-                  ? "mt-1 text-[1.65rem] font-semibold tracking-tight text-emerald-400"
-                  : "mt-1 text-[1.65rem] font-semibold tracking-tight text-amber-300"
+                  ? "mt-1 text-[1.65rem] font-semibold tracking-tight text-success"
+                  : "mt-1 text-[1.65rem] font-semibold tracking-tight text-warning"
               }
             >
               {status?.status || "Loading…"}
             </p>
           </div>
-          <button type="button" onClick={refresh} className="text-sm text-sky-400 hover:text-sky-300">
+          <button type="button" onClick={refresh} className="text-sm text-primary hover:text-primary/80">
             Refresh
           </button>
         </div>
@@ -62,7 +62,7 @@ export default function TunnelPage() {
             type="button"
             disabled={loading || status?.status === "active"}
             onClick={() => changeState("up")}
-            className="rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-semibold text-slate-950 disabled:opacity-50"
+            className="rounded-lg bg-success px-4 py-2.5 text-sm font-semibold text-success-foreground disabled:opacity-50"
           >
             Bring up
           </button>
@@ -70,7 +70,7 @@ export default function TunnelPage() {
             type="button"
             disabled={loading || status?.status === "inactive"}
             onClick={() => changeState("down")}
-            className="rounded-lg border border-red-900 px-4 py-2.5 text-sm font-semibold text-red-300 disabled:opacity-50"
+            className="rounded-lg border border-destructive/40 px-4 py-2.5 text-sm font-semibold text-destructive disabled:opacity-50"
           >
             Bring down
           </button>
@@ -83,8 +83,8 @@ export default function TunnelPage() {
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <dt className="text-sm text-slate-400">{label}</dt>
-      <dd className="mt-1 font-medium">{value}</dd>
+      <dt className="text-sm text-muted-foreground">{label}</dt>
+      <dd className="mt-1 font-medium text-foreground">{value}</dd>
     </div>
   );
 }

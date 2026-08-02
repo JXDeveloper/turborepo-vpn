@@ -36,7 +36,7 @@ export function AppSidebar() {
           href="/dashboard"
           className="flex h-8 items-center gap-2 rounded-md px-2 font-semibold text-sidebar-foreground"
         >
-          <Network className="size-4 shrink-0 text-sky-500" />
+          <Network className="size-4 shrink-0 text-primary" />
           <span className="truncate">VPN Control Panel</span>
         </Link>
       </SidebarHeader>
