@@ -21,12 +21,12 @@ export default function DashboardPage() {
   const activePeers = peers.filter((peer) => peer.status === "active").length;
 
   return (
-    <div className="space-y-8 py-24">
+    <div className="space-y-10 py-10 sm:py-14">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-sky-400">Exit node administration</p>
-          <h1 className="mt-1 text-3xl font-bold tracking-tight">Control panel</h1>
-          <p className="mt-2 max-w-2xl text-slate-400">Monitor the WireGuard exit node and provision client peers.</p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Control panel</h1>
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-slate-400">Monitor the WireGuard exit node and provision client peers.</p>
         </div>
         <Link
           href="/dashboard/peers/new"
@@ -84,7 +84,7 @@ function Metric({ label, value, accent = "text-slate-100" }: { label: string; va
   return (
     <article className="rounded-xl border border-slate-800 bg-slate-900 p-5">
       <p className="text-sm text-slate-400">{label}</p>
-      <p className={`mt-2 truncate text-2xl font-semibold ${accent}`}>{value}</p>
+      <p className={`mt-2 truncate text-[1.65rem] font-semibold tracking-tight ${accent}`}>{value}</p>
     </article>
   );
 }

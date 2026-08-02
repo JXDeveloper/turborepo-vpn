@@ -31,8 +31,8 @@ export default function TunnelPage() {
   return (
     <div className="max-w-3xl">
       <p className="text-sm font-medium text-sky-400">WireGuard interface</p>
-      <h1 className="mt-1 text-3xl font-bold">Exit node</h1>
-      <p className="mt-2 text-slate-400">The controls below change the live wg0 interface on the exit node.</p>
+      <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Exit node</h1>
+      <p className="mt-3 text-[15px] leading-7 text-slate-400">The controls below change the live wg0 interface on the exit node.</p>
       {error && <p className="mt-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
       <section className="mt-8 rounded-xl border border-slate-800 bg-slate-900 p-6">
         <div className="flex items-center justify-between">
@@ -41,8 +41,8 @@ export default function TunnelPage() {
             <p
               className={
                 status?.status === "active"
-                  ? "mt-1 text-2xl font-semibold text-emerald-400"
-                  : "mt-1 text-2xl font-semibold text-amber-300"
+                  ? "mt-1 text-[1.65rem] font-semibold tracking-tight text-emerald-400"
+                  : "mt-1 text-[1.65rem] font-semibold tracking-tight text-amber-300"
               }
             >
               {status?.status || "Loading…"}

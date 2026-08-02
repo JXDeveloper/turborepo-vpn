@@ -40,7 +40,7 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm text-slate-400">Peer</p>
-              <h1 className="mt-1 text-2xl font-bold">{peer.id}</h1>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{peer.id}</h1>
             </div>
             <span
               className={

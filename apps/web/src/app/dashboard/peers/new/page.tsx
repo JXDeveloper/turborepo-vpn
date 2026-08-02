@@ -27,8 +27,8 @@ export default function NewPeerPage() {
       <Link href="/dashboard/peers" className="text-sm text-sky-400 hover:text-sky-300">
         ← All peers
       </Link>
-      <h1 className="mt-4 text-3xl font-bold">Create peer</h1>
-      <p className="mt-2 text-slate-400">
+      <h1 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Create peer</h1>
+      <p className="mt-3 text-[15px] leading-7 text-slate-400">
         Create a WireGuard client configuration and import it into the official client using its QR code.
       </p>
       {!result && (

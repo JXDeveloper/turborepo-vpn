@@ -19,7 +19,7 @@ export default function PeersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-sky-400">WireGuard clients</p>
-          <h1 className="mt-1 text-3xl font-bold">Peers</h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Peers</h1>
         </div>
         <Link
           href="/dashboard/peers/new"
@@ -30,7 +30,7 @@ export default function PeersPage() {
       </div>
       {error && <p className="mt-6 rounded-lg border border-red-900 bg-red-950/40 p-4 text-sm text-red-200">{error}</p>}
       <div className="mt-8 overflow-hidden rounded-xl border border-slate-800 bg-slate-900">
-        <table className="w-full text-left text-sm">
+        <table className="w-full text-left text-[0.8125rem] leading-5">
           <thead className="border-b border-slate-800 text-slate-400">
             <tr>
               <th className="px-5 py-3 font-medium">Peer</th>
