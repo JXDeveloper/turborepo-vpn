@@ -8,8 +8,8 @@ export default async function DashboardLayout({ children }: Readonly<{ children:
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset className="bg-slate-950 text-slate-100">
-        <SidebarTrigger className="fixed top-3 left-3 z-20 bg-slate-900 text-slate-100 hover:bg-slate-800 hover:text-white md:hidden" />
+      <SidebarInset className="bg-background text-foreground">
+        <SidebarTrigger className="fixed top-3 left-3 z-20 bg-card text-foreground hover:bg-accent hover:text-accent-foreground md:hidden" />
         <div className="mx-auto w-full max-w-6xl px-5 py-10">{children}</div>
       </SidebarInset>
     </SidebarProvider>

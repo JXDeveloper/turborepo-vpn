@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Network, Users } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 import {
   Sidebar,
@@ -29,7 +30,7 @@ export function AppSidebar() {
   const pathname = usePathname();
 
   return (
-    <Sidebar collapsible="icon" className="dark">
+    <Sidebar collapsible="icon">
       <SidebarHeader>
         <Link
           href="/dashboard"
@@ -66,8 +67,13 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         <div className="flex h-8 items-center gap-2 px-2">
-          <UserButton />
+          <div className="group-data-[collapsible=icon]:hidden">
+            <UserButton />
+          </div>
           <span className="text-sm group-data-[collapsible=icon]:hidden">Account</span>
+          <div className="ml-auto group-data-[collapsible=icon]:mx-auto">
+            <ThemeToggle />
+          </div>
         </div>
       </SidebarFooter>
       <SidebarRail />
