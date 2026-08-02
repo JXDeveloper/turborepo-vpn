@@ -32,8 +32,14 @@ export default function TunnelPage() {
     <div className="max-w-3xl">
       <p className="text-sm font-medium text-primary">WireGuard interface</p>
       <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Exit node</h1>
-      <p className="mt-3 text-[15px] leading-7 text-muted-foreground">The controls below change the live wg0 interface on the exit node.</p>
-      {error && <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      <p className="mt-3 text-[15px] leading-7 text-muted-foreground">
+        The controls below change the live wg0 interface on the exit node.
+      </p>
+      {error && (
+        <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <section className="mt-8 rounded-xl border border-border bg-card p-6">
         <div className="flex items-center justify-between">
           <div>

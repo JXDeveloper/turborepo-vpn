@@ -26,7 +26,9 @@ export default function DashboardPage() {
         <div>
           <p className="text-sm font-medium text-primary">Exit node administration</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Control panel</h1>
-          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">Monitor the WireGuard exit node and provision client peers.</p>
+          <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
+            Monitor the WireGuard exit node and provision client peers.
+          </p>
         </div>
         <Link
           href="/dashboard/peers/new"
@@ -36,7 +38,11 @@ export default function DashboardPage() {
         </Link>
       </section>
 
-      {error && <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </p>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Metric
@@ -55,7 +61,10 @@ export default function DashboardPage() {
             <Row label="WAN interface" value={status?.wanInterface || "Loading…"} />
             <Row label="Assigned peer records" value={String(peers.length)} />
           </dl>
-          <Link href="/dashboard/tunnel" className="mt-6 inline-block text-sm font-medium text-primary hover:text-primary/80">
+          <Link
+            href="/dashboard/tunnel"
+            className="mt-6 inline-block text-sm font-medium text-primary hover:text-primary/80"
+          >
             Manage tunnel →
           </Link>
         </article>
@@ -65,7 +74,10 @@ export default function DashboardPage() {
             A client keypair is generated only when a peer is created. The private key is returned once in the WireGuard
             configuration QR code.
           </p>
-          <Link href="/dashboard/peers" className="mt-6 inline-block text-sm font-medium text-primary hover:text-primary/80">
+          <Link
+            href="/dashboard/peers"
+            className="mt-6 inline-block text-sm font-medium text-primary hover:text-primary/80"
+          >
             View peers →
           </Link>
         </article>

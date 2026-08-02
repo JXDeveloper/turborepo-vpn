@@ -24,18 +24,27 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <Show when="signed-out">
               <SignInButton>
-                <button type="button" className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground">
+                <button
+                  type="button"
+                  className="rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground"
+                >
                   Sign in
                 </button>
               </SignInButton>
               <SignUpButton>
-                <button type="button" className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                <button
+                  type="button"
+                  className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
                   Create account
                 </button>
               </SignUpButton>
             </Show>
             <Show when="signed-in">
-              <Link href="/dashboard" className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+              <Link
+                href="/dashboard"
+                className="rounded-lg bg-primary px-3 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
                 Open dashboard
               </Link>
               <UserButton />
@@ -59,18 +68,27 @@ export default function Home() {
           <div className="mt-9 flex flex-wrap gap-3">
             <Show when="signed-out">
               <SignUpButton>
-                <button type="button" className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+                <button
+                  type="button"
+                  className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+                >
                   Get started
                 </button>
               </SignUpButton>
               <SignInButton>
-                <button type="button" className="rounded-lg border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground hover:border-border/80 hover:bg-muted">
+                <button
+                  type="button"
+                  className="rounded-lg border border-border bg-background px-5 py-3 text-sm font-semibold text-foreground hover:border-border/80 hover:bg-muted"
+                >
                   Sign in to dashboard
                 </button>
               </SignInButton>
             </Show>
             <Show when="signed-in">
-              <Link href="/dashboard" className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+              <Link
+                href="/dashboard"
+                className="rounded-lg bg-primary px-5 py-3 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+              >
                 Open dashboard
               </Link>
             </Show>
@@ -83,9 +101,7 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Exit node</p>
               <p className="mt-1 font-semibold text-foreground">wg0</p>
             </div>
-            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">
-              Operational
-            </span>
+            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">Operational</span>
           </div>
           <dl className="mt-6 space-y-5 text-sm">
             <StatusRow label="Peer lifecycle" value="Provision and revoke" />

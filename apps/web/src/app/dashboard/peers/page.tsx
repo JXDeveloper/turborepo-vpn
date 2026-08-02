@@ -21,11 +21,18 @@ export default function PeersPage() {
           <p className="text-sm font-medium text-primary">WireGuard clients</p>
           <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Peers</h1>
         </div>
-        <Link href="/dashboard/peers/new" className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90">
+        <Link
+          href="/dashboard/peers/new"
+          className="rounded-lg bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90"
+        >
           Create peer
         </Link>
       </div>
-      {error && <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </p>
+      )}
       <div className="mt-8 overflow-hidden rounded-xl border border-border bg-card">
         <table className="w-full text-left text-[0.8125rem] leading-5">
           <thead className="border-b border-border text-muted-foreground">

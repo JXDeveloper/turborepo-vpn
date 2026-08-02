@@ -33,7 +33,11 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
       <Link href="/dashboard/peers" className="text-sm text-primary hover:text-primary/80">
         ← All peers
       </Link>
-      {error && <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="mt-6 rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive">
+          {error}
+        </p>
+      )}
       {!peer && !error && <p className="mt-6 text-muted-foreground">Loading peer…</p>}
       {peer && (
         <section className="mt-6 rounded-xl border border-border bg-card p-6">
