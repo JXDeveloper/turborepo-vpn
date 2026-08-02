@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Show, SignInButton, SignUpButton, UserButton } from "@clerk/nextjs";
 import { getExitNodes } from "./action";
 import { useState, useEffect, useTransition } from "react";
-import Navbar from "./components/navbar";
+import Navbar from "@/components/navbar";
 
 export default function Home() {
   const [_, startTransition] = useTransition();
