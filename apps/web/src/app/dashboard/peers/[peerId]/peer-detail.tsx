@@ -12,17 +12,24 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
   useEffect(() => {
     getPeer(peerId)
       .then(setPeer)
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Unable to load peer."));
+      .catch((cause: unknown) =>
+        setError(
+          cause instanceof Error ? cause.message : "Unable to load peer.",
+        ),
+      );
   }, [peerId]);
 
   async function handleRevoke() {
-    if (!window.confirm("Revoke this peer? Its tunnel access will be removed.")) return;
+    if (!window.confirm("Revoke this peer? Its tunnel access will be removed."))
+      return;
     setRevoking(true);
     setError("");
     try {
       setPeer(await revokePeer(peerId));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Unable to revoke peer.");
+      setError(
+        cause instanceof Error ? cause.message : "Unable to revoke peer.",
+      );
     } finally {
       setRevoking(false);
     }
@@ -30,7 +37,10 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
 
   return (
     <div className="max-w-2xl">
-      <Link href="/dashboard/peers" className="text-sm text-primary hover:text-primary/80">
+      <Link
+        href="/dashboard/peers"
+        className="text-sm text-primary hover:text-primary/80"
+      >
         ← All peers
       </Link>
       {error && (
@@ -38,13 +48,17 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
           {error}
         </p>
       )}
-      {!peer && !error && <p className="mt-6 text-muted-foreground">Loading peer…</p>}
+      {!peer && !error && (
+        <p className="mt-6 text-muted-foreground">Loading peer…</p>
+      )}
       {peer && (
         <section className="mt-6 rounded-xl border border-border bg-card p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-sm text-muted-foreground">Peer</p>
-              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">{peer.id}</h1>
+              <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
+                {peer.id}
+              </h1>
             </div>
             <span
               className={
@@ -59,7 +73,10 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
           <dl className="mt-8 space-y-5 text-sm">
             <Field label="Assigned address" value={`${peer.allocatedIp}/32`} />
             <Field label="Public key" value={peer.publicKey} mono />
-            <Field label="Created" value={new Date(peer.createdAt).toLocaleString()} />
+            <Field
+              label="Created"
+              value={new Date(peer.createdAt).toLocaleString()}
+            />
           </dl>
           {peer.status === "active" && (
             <button
@@ -77,11 +94,23 @@ export default function PeerDetail({ peerId }: { peerId: string }) {
   );
 }
 
-function Field({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+function Field({
+  label,
+  value,
+  mono,
+}: {
+  label: string;
+  value: string;
+  mono?: boolean;
+}) {
   return (
     <div>
       <dt className="text-muted-foreground">{label}</dt>
-      <dd className={`mt-1 break-all text-foreground ${mono ? "font-mono text-xs" : ""}`}>{value}</dd>
+      <dd
+        className={`mt-1 break-all text-foreground ${mono ? "font-mono text-xs" : ""}`}
+      >
+        {value}
+      </dd>
     </div>
   );
 }

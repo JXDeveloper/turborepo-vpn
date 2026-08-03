@@ -2,7 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getPeers, getTunnelStatus, type Peer, type TunnelStatus } from "../action";
+import {
+  getPeers,
+  getTunnelStatus,
+  type Peer,
+  type TunnelStatus,
+} from "../action";
 
 export default function DashboardPage() {
   const [status, setStatus] = useState<TunnelStatus | null>(null);
@@ -15,7 +20,11 @@ export default function DashboardPage() {
         setStatus(nextStatus);
         setPeers(nextPeers);
       })
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Unable to load dashboard."));
+      .catch((cause: unknown) =>
+        setError(
+          cause instanceof Error ? cause.message : "Unable to load dashboard.",
+        ),
+      );
   }, []);
 
   const activePeers = peers.filter((peer) => peer.status === "active").length;
@@ -24,8 +33,12 @@ export default function DashboardPage() {
     <div className="space-y-10 py-10 sm:py-14">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-sm font-medium text-primary">Exit node administration</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Control panel</h1>
+          <p className="text-sm font-medium text-primary">
+            Exit node administration
+          </p>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Control panel
+          </h1>
           <p className="mt-3 max-w-2xl text-[15px] leading-7 text-muted-foreground">
             Monitor the WireGuard exit node and provision client peers.
           </p>
@@ -58,7 +71,10 @@ export default function DashboardPage() {
         <article className="rounded-xl border border-border bg-card p-5">
           <h2 className="font-semibold">Exit node</h2>
           <dl className="mt-4 space-y-3 text-sm">
-            <Row label="WAN interface" value={status?.wanInterface || "Loading…"} />
+            <Row
+              label="WAN interface"
+              value={status?.wanInterface || "Loading…"}
+            />
             <Row label="Assigned peer records" value={String(peers.length)} />
           </dl>
           <Link
@@ -71,8 +87,8 @@ export default function DashboardPage() {
         <article className="rounded-xl border border-border bg-card p-5">
           <h2 className="font-semibold">Peer provisioning</h2>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            A client keypair is generated only when a peer is created. The private key is returned once in the WireGuard
-            configuration QR code.
+            A client keypair is generated only when a peer is created. The
+            private key is returned once in the WireGuard configuration QR code.
           </p>
           <Link
             href="/dashboard/peers"
@@ -86,11 +102,23 @@ export default function DashboardPage() {
   );
 }
 
-function Metric({ label, value, accent = "text-foreground" }: { label: string; value: string; accent?: string }) {
+function Metric({
+  label,
+  value,
+  accent = "text-foreground",
+}: {
+  label: string;
+  value: string;
+  accent?: string;
+}) {
   return (
     <article className="rounded-xl border border-border bg-card p-5">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className={`mt-2 truncate text-[1.65rem] font-semibold tracking-tight ${accent}`}>{value}</p>
+      <p
+        className={`mt-2 truncate text-[1.65rem] font-semibold tracking-tight ${accent}`}
+      >
+        {value}
+      </p>
     </article>
   );
 }

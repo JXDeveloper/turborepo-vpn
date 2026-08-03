@@ -47,11 +47,17 @@ export function AppSidebar() {
             <SidebarMenu>
               {navigation.map((item) => {
                 const isActive =
-                  pathname === item.href || (item.href !== "/dashboard" && pathname.startsWith(`${item.href}/`));
+                  pathname === item.href ||
+                  (item.href !== "/dashboard" &&
+                    pathname.startsWith(`${item.href}/`));
 
                 return (
                   <SidebarMenuItem key={item.href}>
-                    <SidebarMenuButton render={<Link href={item.href} />} isActive={isActive} tooltip={item.label}>
+                    <SidebarMenuButton
+                      render={<Link href={item.href} />}
+                      isActive={isActive}
+                      tooltip={item.label}
+                    >
                       <item.icon />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
@@ -67,7 +73,9 @@ export function AppSidebar() {
           <div className="group-data-[collapsible=icon]:hidden">
             <UserButton />
           </div>
-          <span className="text-sm group-data-[collapsible=icon]:hidden">Account</span>
+          <span className="text-sm group-data-[collapsible=icon]:hidden">
+            Account
+          </span>
           <div className="ml-auto group-data-[collapsible=icon]:mx-auto">
             <ThemeToggle />
           </div>

@@ -24,7 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${manrope.variable} ${geistMono.variable} h-full antialiased dark`}>
+    <html
+      lang="en"
+      className={`${manrope.variable} ${geistMono.variable} h-full antialiased dark`}
+    >
       <body className="min-h-full">
         <ClerkProvider>{children}</ClerkProvider>
       </body>

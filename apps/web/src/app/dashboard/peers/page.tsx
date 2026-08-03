@@ -11,7 +11,11 @@ export default function PeersPage() {
   useEffect(() => {
     getPeers()
       .then(setPeers)
-      .catch((cause: unknown) => setError(cause instanceof Error ? cause.message : "Unable to load peers."));
+      .catch((cause: unknown) =>
+        setError(
+          cause instanceof Error ? cause.message : "Unable to load peers.",
+        ),
+      );
   }, []);
 
   return (
@@ -19,7 +23,9 @@ export default function PeersPage() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
           <p className="text-sm font-medium text-primary">WireGuard clients</p>
-          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">Peers</h1>
+          <h1 className="mt-1 text-3xl font-semibold tracking-tight sm:text-4xl">
+            Peers
+          </h1>
         </div>
         <Link
           href="/dashboard/peers/new"
@@ -45,26 +51,46 @@ export default function PeersPage() {
           </thead>
           <tbody>
             {peers.map((peer) => (
-              <tr key={peer.id} className="border-b border-border hover:bg-muted/40">
+              <tr
+                key={peer.id}
+                className="border-b border-border hover:bg-muted/40"
+              >
                 <td className="px-5 py-4">
-                  <Link className="font-medium text-primary hover:text-primary/80" href={`/dashboard/peers/${peer.id}`}>
+                  <Link
+                    className="font-medium text-primary hover:text-primary/80"
+                    href={`/dashboard/peers/${peer.id}`}
+                  >
                     {peer.id}
                   </Link>
-                  <p className="mt-1 max-w-48 truncate font-mono text-xs text-muted-foreground">{peer.publicKey}</p>
+                  <p className="mt-1 max-w-48 truncate font-mono text-xs text-muted-foreground">
+                    {peer.publicKey}
+                  </p>
                 </td>
-                <td className="px-5 py-4 font-mono text-foreground">{peer.allocatedIp}/32</td>
+                <td className="px-5 py-4 font-mono text-foreground">
+                  {peer.allocatedIp}/32
+                </td>
                 <td className="px-5 py-4">
-                  <span className={peer.status === "active" ? "text-success" : "text-muted-foreground"}>
+                  <span
+                    className={
+                      peer.status === "active"
+                        ? "text-success"
+                        : "text-muted-foreground"
+                    }
+                  >
                     {peer.status}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-muted-foreground">{new Date(peer.createdAt).toLocaleString()}</td>
+                <td className="px-5 py-4 text-muted-foreground">
+                  {new Date(peer.createdAt).toLocaleString()}
+                </td>
               </tr>
             ))}
           </tbody>
         </table>
         {!error && peers.length === 0 && (
-          <p className="p-8 text-center text-sm text-muted-foreground">No peers have been provisioned.</p>
+          <p className="p-8 text-center text-sm text-muted-foreground">
+            No peers have been provisioned.
+          </p>
         )}
       </div>
     </div>

@@ -62,8 +62,8 @@ export default function Home() {
             Operate your VPN without losing sight of the network.
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-            Provision peers, distribute secure WireGuard configurations, and manage the live exit-node tunnel from one
-            protected control panel.
+            Provision peers, distribute secure WireGuard configurations, and
+            manage the live exit-node tunnel from one protected control panel.
           </p>
           <div className="mt-9 flex flex-wrap gap-3">
             <Show when="signed-out">
@@ -101,12 +101,20 @@ export default function Home() {
               <p className="text-sm text-muted-foreground">Exit node</p>
               <p className="mt-1 font-semibold text-foreground">wg0</p>
             </div>
-            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">Operational</span>
+            <span className="rounded-full bg-success/10 px-3 py-1 text-sm font-medium text-success">
+              Operational
+            </span>
           </div>
           <dl className="mt-6 space-y-5 text-sm">
             <StatusRow label="Peer lifecycle" value="Provision and revoke" />
-            <StatusRow label="Configuration delivery" value="QR code + WireGuard config" />
-            <StatusRow label="Tunnel controls" value="Protected operator actions" />
+            <StatusRow
+              label="Configuration delivery"
+              value="QR code + WireGuard config"
+            />
+            <StatusRow
+              label="Tunnel controls"
+              value="Protected operator actions"
+            />
           </dl>
         </div>
       </section>
@@ -140,11 +148,19 @@ function StatusRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Feature({ title, description }: { title: string; description: string }) {
+function Feature({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
   return (
     <article className="rounded-xl border border-border bg-card/70 p-5">
       <h2 className="font-semibold text-foreground">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">
+        {description}
+      </p>
     </article>
   );
 }
