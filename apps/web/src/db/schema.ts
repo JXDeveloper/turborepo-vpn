@@ -31,6 +31,28 @@ export const peerStatus = pgEnum("peer_status", [
   "revoked",
 ]);
 
+export const devicePlatform = pgEnum("device_platform", [
+  "windows",
+  "macos",
+  "linux",
+  "android",
+  "ios",
+]);
+
+export const deviceStatus = pgEnum("device_status", [
+  "active",
+  "revoked",
+  "pending",
+]);
+
+export const deviceType = pgEnum("device_type", [
+  "desktop",
+  "laptop",
+  "phone",
+  "tablet",
+  "server",
+]);
+
 /**
  * Why a peer was assigned or migrated to another exit node.
  * Useful for auditing and debugging scheduler decisions.
@@ -112,8 +134,10 @@ export const peers = pgTable(
   {
     id: uuid("id").defaultRandom().primaryKey(),
 
-    /** Clerk user ID (stored as text, not UUID). */
-    clerkUserId: text("clerk_user_id").notNull(),
+    /** device id */
+    deviceId: uuid("device_id")
+      .notNull()
+      .references(() => devices.id, { onDelete: "cascade" }),
 
     /** WireGuard public key for this device/peer. */
     publicKey: text("public_key").notNull().unique(),
@@ -130,7 +154,7 @@ export const peers = pgTable(
       .notNull(),
   },
   (table) => [
-    index("clerk_user_id_index").on(table.clerkUserId),
+    index("clerk_user_id_index").on(table.deviceId),
     index("allocated_ip_index").on(table.allocatedIp),
   ],
 );
@@ -190,3 +214,44 @@ export const assignmentHistory = pgTable("assignment_history", {
   /** Why the assignment occurred. */
   reason: assignmentReason("reason").notNull().default("initial"),
 });
+
+export const devices = pgTable(
+  "devices",
+  {
+    /** Unique identifier for the device. Genrated by server */
+    id: uuid("id").defaultRandom().primaryKey(),
+
+    /** Unique identifier for the device. Genrerated by client */
+    deviceIdentifier: text("device_id").notNull().unique(),
+
+    /** user id which device belongs to. */
+    clerkUserId: text("clerk_user_id").notNull(),
+
+    /** Device name (e.g. "iPhone", "Laptop"). */
+    name: text("name").notNull(),
+
+    /** Device type (e.g. "mobile", "desktop"). */
+    type: deviceType("type").notNull(),
+
+    /** Device platform (e.g. "iOS", "Windows"). */
+    platform: devicePlatform("platform").notNull(),
+
+    /** Device model (e.g. "iPhone 14 Pro", "MacBook Pro"). */
+    model: text("model"),
+
+    /** Device status (e.g. "active", "revoked"). */
+    status: deviceStatus("status").notNull().default("active"),
+
+    /** Last time the device was seen online. */
+    lastSeenAt: timestamp("last_seen_at", {
+      withTimezone: true,
+    }),
+
+    createdAt: timestamp("created_at", {
+      withTimezone: true,
+    })
+      .defaultNow()
+      .notNull(),
+  },
+  (policy) => [index("user_id_index").on(policy.clerkUserId)],
+);
