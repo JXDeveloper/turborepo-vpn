@@ -1,0 +1,11 @@
+{
+  "name": "@my-vpn/expo-wireguard",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "dependencies": {
+    "expo-modules-core": "*"
+  },
+  "peerDependencies": {
+    "expo": "*"
+  }
+}

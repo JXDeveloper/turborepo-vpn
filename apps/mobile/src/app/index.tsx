@@ -1,98 +1,84 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  Text,
+  View,
+  StyleSheet,
+  Button,
+  ToastAndroid,
+  NativeModules,
+  Platform,
+} from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useEffect, useState } from "react";
+import crypto from "react-native-quick-crypto";
+import {
+  getStatus,
+  generateKeyPair,
+  requestPermission,
+  connect,
+  disconnect,
+  addStatusListener,
+} from "@my-vpn/expo-wireguard";
+import { buildWireguardConfig } from "../vpn/buildConfig";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+// const { WireGuardModule } = NativeModules;
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
-  return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+async function generateSignature(
+  secret: string,
+  message: string,
+): Promise<string> {
+  return crypto.createHmac("sha-256", secret).update(message).digest("hex");
 }
 
-export default function HomeScreen() {
+export default function Index() {
+  const [status, setStatus] = useState("down");
+
+  useEffect(() => {
+    const sub = addStatusListener((event) => setStatus(event.status));
+    return () => sub.remove();
+  }, []);
+
+  async function handleConnect() {
+    let serverConfig: any;
+    let privateKey = await SecureStore.getItemAsync("wg_private_key");
+    let publicKey = await SecureStore.getItemAsync("wg_public_key");
+
+    if (!privateKey || !publicKey) {
+      const keys = await generateKeyPair();
+      privateKey = keys.privateKey;
+      publicKey = keys.publicKey;
+      await SecureStore.setItemAsync("wg_private_key", privateKey);
+      await SecureStore.setItemAsync("wg_public_key", publicKey);
+
+      // send publicKey to your backend, get back server config
+      serverConfig = await fetch("http://localhost:3000/api/vpn/register", {
+        method: "POST",
+        body: JSON.stringify({ publicKey }),
+      }).then((r) => r.json());
+    }
+
+    const granted = await requestPermission();
+    if (!granted) {
+      // system dialog was shown — user needs to respond; handle result flow separately
+      return;
+    }
+
+    const configText = buildWireguardConfig(privateKey, serverConfig);
+    await connect(configText);
+  }
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
+    <View>
+      <Text>Status: {status}</Text>
+      <Button title="Connect" onPress={handleConnect} />
+      <Button title="Disconnect" onPress={() => disconnect()} />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
