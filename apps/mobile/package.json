@@ -39,6 +39,7 @@
   },
   "scripts": {
     "start": "expo start",
+    "dev": "expo run:android",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "android:clean": "expo prebuild --clean",

@@ -50,7 +50,7 @@ export default function Index() {
       await SecureStore.setItemAsync("wg_public_key", publicKey);
 
       // send publicKey to your backend, get back server config
-      serverConfig = await fetch("http://localhost:3000/api/vpn/register", {
+      serverConfig = await fetch("http://10.31.175.94:3000/api/vpn/register", {
         method: "POST",
         body: JSON.stringify({ publicKey }),
       }).then((r) => r.json());
@@ -66,11 +66,31 @@ export default function Index() {
     await connect(configText);
   }
 
+  async function handleHitApi() {
+    await fetch("http://10.31.175.94:3000/api/vpn/peer/create", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ peerName: "my-peer" }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("API Response:", data);
+        ToastAndroid.show("API hit successfully!", ToastAndroid.SHORT);
+      })
+      .catch((error) => {
+        console.error("Error hitting API:", error);
+        ToastAndroid.show("Error hitting API", ToastAndroid.SHORT);
+      });
+  }
+
   return (
     <View>
       <Text>Status: {status}</Text>
       <Button title="Connect" onPress={handleConnect} />
       <Button title="Disconnect" onPress={() => disconnect()} />
+      <Button title="Hit API" onPress={handleHitApi} />
     </View>
   );
 }
