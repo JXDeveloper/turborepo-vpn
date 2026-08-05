@@ -41,4 +41,4 @@ docs
 */configs/*
 config/*
 .vscode/*
-.gradle/*
+.gradle
