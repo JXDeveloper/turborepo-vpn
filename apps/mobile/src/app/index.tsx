@@ -50,10 +50,13 @@ export default function Index() {
       await SecureStore.setItemAsync("wg_public_key", publicKey);
 
       // send publicKey to your backend, get back server config
-      serverConfig = await fetch("http://10.31.175.94:3000/api/vpn/register", {
-        method: "POST",
-        body: JSON.stringify({ publicKey }),
-      }).then((r) => r.json());
+      serverConfig = await fetch(
+        "http://192.168.2.220:3000/api/vpn/peer/create",
+        {
+          method: "POST",
+          body: JSON.stringify({ publicKey }),
+        },
+      ).then((r) => r.json());
     }
 
     const granted = await requestPermission();
@@ -67,7 +70,7 @@ export default function Index() {
   }
 
   async function handleHitApi() {
-    await fetch("http://10.31.175.94:3000/api/vpn/peer/create", {
+    await fetch("http://192.168.2.220:3000/api/vpn/peer/create", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

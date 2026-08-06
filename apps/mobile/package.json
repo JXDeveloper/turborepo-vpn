@@ -3,11 +3,14 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
+    "@clerk/expo": "^4.2.1",
     "@expo/ui": "~57.0.8",
     "@my-vpn/crypto-utils": "workspace:*",
     "@my-vpn/expo-wireguard": "workspace:*",
     "expo": "~57.0.9",
+    "expo-auth-session": "~57.0.6",
     "expo-constants": "~57.0.8",
+    "expo-crypto": "~57.0.1",
     "expo-dev-client": "~57.0.10",
     "expo-device": "~57.0.1",
     "expo-font": "~57.0.1",
@@ -39,7 +42,6 @@
   },
   "scripts": {
     "start": "expo start",
-    "dev": "expo run:android",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "android:clean": "expo prebuild --clean",
