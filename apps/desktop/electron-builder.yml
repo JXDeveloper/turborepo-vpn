@@ -35,6 +35,12 @@ linux:
     - deb
   maintainer: electronjs.org
   category: Utility
+
+  protocols:
+    - name: My VPN
+      schemes:
+        - my-vpn
+        
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
