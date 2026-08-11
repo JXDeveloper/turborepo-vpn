@@ -35,6 +35,12 @@ importers:
       '@electron-toolkit/utils':
         specifier: ^4.0.0
         version: 4.0.0(electron@39.8.10)
+      '@my-vpn/crypto-utils':
+        specifier: workspace:*
+        version: link:../../packages/crypto-utils
+      '@shurahbil/wireguard-tools-2':
+        specifier: ^0.1.2
+        version: 0.1.2
       electron-store:
         specifier: ^11.0.2
         version: 11.0.2

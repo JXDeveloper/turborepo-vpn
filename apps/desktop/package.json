@@ -26,6 +26,8 @@
     "@clerk/ui": "^1.29.0",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@my-vpn/crypto-utils": "workspace:*",
+    "@shurahbil/wireguard-tools-2": "^0.1.2",
     "electron-store": "^11.0.2"
   },
   "devDependencies": {
