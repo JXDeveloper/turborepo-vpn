@@ -1,16 +1,26 @@
 export async function getHmacKey(secret: string): Promise<CryptoKey> {
   const encoder = new TextEncoder();
-  return crypto.subtle.importKey("raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, [
-    "sign",
-    "verify",
-  ]);
+  return crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
 }
 
-export async function generateSignature(secret: string, message: string): Promise<string> {
+export async function generateSignature(
+  secret: string,
+  message: string,
+): Promise<string> {
   const encoder = new TextEncoder();
   const key = await getHmacKey(secret);
 
-  const signatureBuffer = await crypto.subtle.sign("HMAC", key, encoder.encode(message));
+  const signatureBuffer = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    encoder.encode(message),
+  );
 
   // Convert ArrayBuffer to Hex string
   return Array.from(new Uint8Array(signatureBuffer))
@@ -18,12 +28,142 @@ export async function generateSignature(secret: string, message: string): Promis
     .join("");
 }
 
-export async function verifySignature(secret: string, message: string, signatureHex: string): Promise<boolean> {
+export async function verifySignature(
+  secret: string,
+  message: string,
+  signatureHex: string,
+): Promise<boolean> {
   const encoder = new TextEncoder();
   const key = await getHmacKey(secret);
 
   // Convert Hex string back to Uint8Array Buffer
-  const signatureBytes = new Uint8Array(signatureHex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || []);
+  const signatureBytes = new Uint8Array(
+    signatureHex.match(/.{1,2}/g)?.map((byte) => parseInt(byte, 16)) || [],
+  );
 
-  return crypto.subtle.verify("HMAC", key, signatureBytes, encoder.encode(message));
+  return crypto.subtle.verify(
+    "HMAC",
+    key,
+    signatureBytes,
+    encoder.encode(message),
+  );
+}
+
+export type Keypair = {
+  publicKey: string;
+  privateKey: string;
+};
+
+function bytesToBase64(bytes: Uint8Array): string {
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let base64 = "";
+
+  for (let i = 0; i < bytes.length; i += 3) {
+    const byte1 = bytes[i] ?? 0;
+    const byte2 = bytes[i + 1] ?? 0;
+    const byte3 = bytes[i + 2] ?? 0;
+    const combined = (byte1 << 16) | (byte2 << 8) | byte3;
+
+    base64 += alphabet[(combined >> 18) & 63];
+    base64 += alphabet[(combined >> 12) & 63];
+    base64 += i + 1 < bytes.length ? alphabet[(combined >> 6) & 63] : "=";
+    base64 += i + 2 < bytes.length ? alphabet[combined & 63] : "=";
+  }
+
+  return base64;
+}
+
+async function generateX25519KeypairViaWebCrypto(): Promise<Keypair> {
+  const base64UrlToBase64 = (value: string) => {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    return base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  };
+
+  const keyPair = (await globalThis.crypto.subtle.generateKey(
+    { name: "X25519" },
+    true,
+    ["deriveBits"],
+  )) as CryptoKeyPair;
+
+  if (!("publicKey" in keyPair) || !("privateKey" in keyPair)) {
+    throw new Error("Web Crypto did not return an X25519 keypair");
+  }
+
+  const publicKeyJwk = await globalThis.crypto.subtle.exportKey(
+    "jwk",
+    keyPair.publicKey,
+  );
+  const privateKeyJwk = await globalThis.crypto.subtle.exportKey(
+    "jwk",
+    keyPair.privateKey,
+  );
+
+  if (typeof publicKeyJwk.x !== "string" || typeof privateKeyJwk.d !== "string") {
+    throw new Error("Web Crypto did not export an X25519 JWK keypair");
+  }
+
+  return {
+    publicKey: base64UrlToBase64(publicKeyJwk.x),
+    privateKey: base64UrlToBase64(privateKeyJwk.d),
+  };
+}
+
+async function generateX25519KeypairViaNode(): Promise<Keypair> {
+  type X25519Jwk = JsonWebKey & { x?: string; d?: string };
+  type GenerateX25519Keypair = (
+    type: "x25519",
+    options: {
+      publicKeyEncoding: { format: "jwk" };
+      privateKeyEncoding: { format: "jwk" };
+    },
+  ) => { publicKey: X25519Jwk; privateKey: X25519Jwk };
+
+  const base64UrlToBase64 = (value: string) => {
+    const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+    return base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  };
+
+  const importNodeCrypto = new Function(
+    "specifier",
+    "return import(specifier)",
+  ) as (specifier: string) => Promise<typeof import("node:crypto")>;
+  const nodeCrypto = await importNodeCrypto("node:crypto");
+  const generateKeyPairSync =
+    nodeCrypto.generateKeyPairSync as unknown as GenerateX25519Keypair;
+  const { publicKey, privateKey } = generateKeyPairSync("x25519", {
+    publicKeyEncoding: { format: "jwk" },
+    privateKeyEncoding: { format: "jwk" },
+  });
+
+  if (typeof publicKey.x !== "string" || typeof privateKey.d !== "string") {
+    throw new Error("Node crypto did not export an X25519 JWK keypair");
+  }
+
+  return {
+    publicKey: base64UrlToBase64(publicKey.x),
+    privateKey: base64UrlToBase64(privateKey.d),
+  };
+}
+
+export async function genKeypair(): Promise<Keypair> {
+  if (
+    typeof globalThis.crypto !== "undefined" &&
+    typeof globalThis.crypto.subtle !== "undefined"
+  ) {
+    try {
+      return await generateX25519KeypairViaWebCrypto();
+    } catch {
+      // fall through to Node fallback if Web Crypto can't generate X25519
+    }
+  }
+
+  if (
+    typeof process !== "undefined" &&
+    typeof process.versions?.node === "string"
+  ) {
+    return await generateX25519KeypairViaNode();
+  }
+
+  throw new Error("Unable to generate X25519 keypair in this runtime");
 }
