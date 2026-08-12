@@ -1,6 +1,7 @@
 import { resolve } from 'path'
 import { defineConfig } from 'electron-vite'
 import react from '@vitejs/plugin-react'
+import { tanstackRouter } from '@tanstack/router-plugin/vite'
 
 export default defineConfig({
   main: {},
@@ -11,6 +12,14 @@ export default defineConfig({
         '@renderer': resolve('src/renderer/src')
       }
     },
-    plugins: [react()]
+    plugins: [
+      // Please make sure that '@tanstack/router-plugin' is passed before '@vitejs/plugin-react'
+      tanstackRouter({
+        target: 'react',
+        autoCodeSplitting: true
+      }),
+      ,
+      react()
+    ]
   }
 })

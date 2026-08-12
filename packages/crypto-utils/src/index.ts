@@ -54,26 +54,6 @@ export type Keypair = {
   privateKey: string;
 };
 
-function bytesToBase64(bytes: Uint8Array): string {
-  const alphabet =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  let base64 = "";
-
-  for (let i = 0; i < bytes.length; i += 3) {
-    const byte1 = bytes[i] ?? 0;
-    const byte2 = bytes[i + 1] ?? 0;
-    const byte3 = bytes[i + 2] ?? 0;
-    const combined = (byte1 << 16) | (byte2 << 8) | byte3;
-
-    base64 += alphabet[(combined >> 18) & 63];
-    base64 += alphabet[(combined >> 12) & 63];
-    base64 += i + 1 < bytes.length ? alphabet[(combined >> 6) & 63] : "=";
-    base64 += i + 2 < bytes.length ? alphabet[combined & 63] : "=";
-  }
-
-  return base64;
-}
-
 async function generateX25519KeypairViaWebCrypto(): Promise<Keypair> {
   const base64UrlToBase64 = (value: string) => {
     const base64 = value.replace(/-/g, "+").replace(/_/g, "/");

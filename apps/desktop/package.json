@@ -28,12 +28,15 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@my-vpn/crypto-utils": "workspace:*",
     "@shurahbil/wireguard-tools-2": "^0.1.2",
+    "@tanstack/react-router": "^1.170.27",
+    "@tanstack/react-router-devtools": "^1.167.1",
     "electron-store": "^11.0.2"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@tanstack/router-plugin": "^1.168.30",
     "@types/node": "^22.19.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
