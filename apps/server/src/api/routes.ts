@@ -14,7 +14,11 @@ function getEndpointAddress(): string {
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
     for (const iface of interfaces[name] || []) {
-      if (!iface.internal && iface.family === "IPv4" && !iface.address.startsWith("172.17.")) {
+      if (
+        !iface.internal &&
+        iface.family === "IPv4" &&
+        !iface.address.startsWith("172.17.")
+      ) {
         return `${iface.address}:51820`;
       }
     }
@@ -27,7 +31,9 @@ function getDefaultWanInterface(): string {
     return process.env.WG_WAN_INTERFACE;
   }
   try {
-    const routeOutput = execSync("ip route show default", { encoding: "utf-8" });
+    const routeOutput = execSync("ip route show default", {
+      encoding: "utf-8",
+    });
     const match = routeOutput.match(/dev\s+([^\s]+)/);
     if (match && match[1]) {
       return match[1].trim();
@@ -82,10 +88,15 @@ const SERVER_CONFIG_PATH = path.join(SERVER_CONFIG_DIR, "wg0.conf");
 let wgServerInstance: WgConfig | null = null;
 let wgServerLoadPromise: Promise<WgConfig> | null = null;
 
-async function generateWireGuardKeyPair(): Promise<{ publicKey: string; privateKey: string }> {
-  const { publicKey, privateKey } = (await crypto.subtle.generateKey({ name: "X25519" }, true, [
-    "deriveBits",
-  ])) as CryptoKeyPair;
+async function generateWireGuardKeyPair(): Promise<{
+  publicKey: string;
+  privateKey: string;
+}> {
+  const { publicKey, privateKey } = (await crypto.subtle.generateKey(
+    { name: "X25519" },
+    true,
+    ["deriveBits"],
+  )) as CryptoKeyPair;
 
   const publicKeyJWK = await crypto.subtle.exportKey("jwk", publicKey);
   const privateKeyJWK = await crypto.subtle.exportKey("jwk", privateKey);
@@ -117,7 +128,7 @@ async function loadWgServerTunnel(configPath: string): Promise<WgConfig> {
       address: ["10.10.1.1/24"],
       listenPort: 51820,
       postUp: [
-        `sysctl -w net.ipv4.ip_forward=1`,
+        // `sysctl -w net.ipv4.ip_forward=1`,
         `iptables -A FORWARD -i %i -j ACCEPT`,
         `iptables -A FORWARD -o %i -j ACCEPT`,
         `iptables -t nat -A POSTROUTING -o ${wanIf} -j MASQUERADE`,
@@ -132,6 +143,7 @@ async function loadWgServerTunnel(configPath: string): Promise<WgConfig> {
 
   if (fs.existsSync(configPath)) {
     await wgConfig.parseFile(configPath);
+    await wgConfig.generateKeys();
     const peerCount = wgConfig.peers?.length ?? 0;
     nextIpIndex = peerCount > 0 ? peerCount + 2 : 2;
   } else {
@@ -151,7 +163,9 @@ async function loadWgServerTunnel(configPath: string): Promise<WgConfig> {
 /**
  * Loads the server WireGuard configuration once and reuses it for later requests.
  */
-export async function initWgServerTunnel(configPath: string = SERVER_CONFIG_PATH): Promise<WgConfig> {
+export async function initWgServerTunnel(
+  configPath: string = SERVER_CONFIG_PATH,
+): Promise<WgConfig> {
   if (wgServerInstance) {
     return wgServerInstance;
   }
@@ -193,18 +207,26 @@ function getNextAllocatedIp(): string {
   return ip;
 }
 
-function normalizePublicKey(publicKey: string | undefined, fallback: string | undefined): string {
+function normalizePublicKey(
+  publicKey: string | undefined,
+  fallback: string | undefined,
+): string {
   return (publicKey?.trim() || fallback?.trim() || "").trim();
 }
 
-export async function createPeerRecord(body: payload): Promise<CreatePeerResponse> {
+export async function createPeerRecord(
+  body: payload,
+): Promise<CreatePeerResponse> {
   const publicKey = normalizePublicKey(body.publicKey, body.data?.str);
   if (!publicKey) {
     throw new Error("publicKey is required");
   }
 
   const allocatedIp = getNextAllocatedIp();
-  const allowedIps = body.allowedIps && body.allowedIps.length > 0 ? body.allowedIps : [`${allocatedIp}/32`];
+  const allowedIps =
+    body.allowedIps && body.allowedIps.length > 0
+      ? body.allowedIps
+      : [`${allocatedIp}/32`];
 
   const peer: PeerRecord = {
     id: `peer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -220,20 +242,24 @@ export async function createPeerRecord(body: payload): Promise<CreatePeerRespons
   await addPeerToWgServer(publicKey, allowedIps);
 
   const serverPublicKey =
-    wgConfig.publicKey || wgConfig.wgInterface?.privateKey || process.env.WG_SERVER_PUBLIC_KEY || "server-public-key";
+    wgConfig.publicKey || process.env.WG_SERVER_PUBLIC_KEY;
+
+  if (!serverPublicKey) {
+    throw new Error("WireGuard server public key is not configured");
+  }
   const endpoint = getEndpointAddress();
 
   const clientConfig = `[Interface]
-PrivateKey = <CLIENT_PRIVATE_KEY>
-Address = ${allocatedIp}/32
-DNS = 10.10.1.1
-
-[Peer]
-
-PublicKey = ${serverPublicKey}
-Endpoint = ${endpoint}
-AllowedIPs = 0.0.0.0/0, ::/0
-`;
+  PrivateKey = <CLIENT_PRIVATE_KEY>
+  Address = ${allocatedIp}/32
+  DNS = 10.10.1.1
+  
+  [Peer]
+  
+  PublicKey = ${serverPublicKey}
+  Endpoint = ${endpoint}
+  AllowedIPs = 0.0.0.0/0, ::/0
+  `;
 
   return {
     message: "peer created successfully",
@@ -245,39 +271,48 @@ AllowedIPs = 0.0.0.0/0, ::/0
   };
 }
 
-const ControlPanelAuthMiddleware = createMiddleware(async (c: Context, next: Next) => {
-  if (c.req.method === "GET") {
-    return await next();
-  }
+const ControlPanelAuthMiddleware = createMiddleware(
+  async (c: Context, next: Next) => {
+    if (c.req.method === "GET") {
+      return await next();
+    }
 
-  const secret = process.env.BACKEND_API_SECRET;
-  if (!secret) {
-    return c.json({ message: "authentication is not configured" }, 500);
-  }
+    const secret = process.env.BACKEND_API_SECRET;
+    if (!secret) {
+      return c.json({ message: "authentication is not configured" }, 500);
+    }
 
-  let body: payload;
-  try {
-    body = await c.req.json<payload>();
-  } catch {
-    return c.json({ message: "invalid JSON request body" }, 400);
-  }
+    let body: payload;
+    try {
+      body = await c.req.json<payload>();
+    } catch {
+      return c.json({ message: "invalid JSON request body" }, 400);
+    }
 
-  if (typeof body.signature !== "string" || typeof body.data?.str !== "string") {
-    return c.json({ message: "signature and signed data are required" }, 401);
-  }
+    if (
+      typeof body.signature !== "string" ||
+      typeof body.data?.str !== "string"
+    ) {
+      return c.json({ message: "signature and signed data are required" }, 401);
+    }
 
-  try {
-    const isValid = await verifySignature(secret, body.data.str, body.signature);
-    if (!isValid) {
+    try {
+      const isValid = await verifySignature(
+        secret,
+        body.data.str,
+        body.signature,
+      );
+      if (!isValid) {
+        return c.json({ message: "invalid request signature" }, 401);
+      }
+    } catch {
       return c.json({ message: "invalid request signature" }, 401);
     }
-  } catch {
-    return c.json({ message: "invalid request signature" }, 401);
-  }
 
-  c.set(REQUEST_BODY_KEY, body);
-  await next();
-});
+    c.set(REQUEST_BODY_KEY, body);
+    await next();
+  },
+);
 
 const createPeer: Handler = async (c) => {
   const body = c.get(REQUEST_BODY_KEY) as payload | undefined;
@@ -289,7 +324,8 @@ const createPeer: Handler = async (c) => {
     const response = await createPeerRecord(body);
     return c.json(response);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "unable to create peer";
+    const message =
+      error instanceof Error ? error.message : "unable to create peer";
     return c.json({ message }, 400);
   }
 };
@@ -297,26 +333,42 @@ const createPeer: Handler = async (c) => {
 const toggleTunnelUp: Handler = async (c) => {
   const wgConfig = await initWgServerTunnel();
   try {
-    await wgConfig.upSudo();
+    // await wgConfig.upSudo();
+    await wgConfig.up(); //! for docker it should be up() and for native device it can be sudoUp()
     tunnelState = "active";
-    return c.json({ message: "Exit Node wg0 interface brought UP successfully", status: "active" });
+    return c.json({
+      message: "Exit Node wg0 interface brought UP successfully",
+      status: "active",
+    });
   } catch (error) {
     tunnelState = "active";
-    const message = error instanceof Error ? error.message : "Tunnel UP signal sent";
-    return c.json({ message: `Exit Node wg0 configured. (${message})`, status: "active" });
+    const message =
+      error instanceof Error ? error.message : "Tunnel UP signal sent";
+    return c.json({
+      message: `Exit Node wg0 configured. (${message})`,
+      status: "active",
+    });
   }
 };
 
 const toggleTunnelDown: Handler = async (c) => {
   const wgConfig = await initWgServerTunnel();
   try {
-    await wgConfig.downSudo();
+    // await wgConfig.downSudo();
+    await wgConfig.down(); //! for docker it should be simple down() and for native device it can be sudoDown()
     tunnelState = "inactive";
-    return c.json({ message: "Exit Node wg0 interface brought DOWN successfully", status: "inactive" });
+    return c.json({
+      message: "Exit Node wg0 interface brought DOWN successfully",
+      status: "inactive",
+    });
   } catch (error) {
     tunnelState = "inactive";
-    const message = error instanceof Error ? error.message : "Tunnel DOWN signal sent";
-    return c.json({ message: `Exit Node wg0 set to DOWN. (${message})`, status: "inactive" });
+    const message =
+      error instanceof Error ? error.message : "Tunnel DOWN signal sent";
+    return c.json({
+      message: `Exit Node wg0 set to DOWN. (${message})`,
+      status: "inactive",
+    });
   }
 };
 
@@ -368,7 +420,8 @@ const revokePeer: Handler = async (c) => {
     wgConfig.removePeer(peer.publicKey);
     await wgConfig.writeToFile();
   } catch (error) {
-    const message = error instanceof Error ? error.message : "unable to revoke peer";
+    const message =
+      error instanceof Error ? error.message : "unable to revoke peer";
     return c.json({ message }, 500);
   }
 

@@ -1,0 +1,23 @@
+services:
+  exit-node:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+
+    env_file:
+      - apps/server/.env
+
+    ports:
+      - "3001:3001"
+      - "8080:8080"
+      - "51820:51820/udp"
+
+    cap_add:
+      - NET_ADMIN
+
+    devices:
+      - /dev/net/tun:/dev/net/tun
+      
+    sysctls:
+          net.ipv4.ip_forward: "1"
+    restart: unless-stopped
