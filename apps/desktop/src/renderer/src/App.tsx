@@ -1,16 +1,12 @@
-import { SignIn, SignUp, UserButton, useAuth } from '@clerk/electron/react'
 import {
-  createHashHistory,
-  createRootRoute,
-  createRoute,
-  createRouter,
-  Link,
-  Navigate,
-  Outlet,
-  RouterProvider,
-  useRouterState
-} from '@tanstack/react-router'
-import { createContext, useContext, useEffect, useMemo, useState } from 'react'
+  Show,
+  SignIn,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+  useAuth
+} from '@clerk/electron/react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   createWebApiClient,
   resolveWebApiBaseUrl,
@@ -21,20 +17,52 @@ import {
   type WebApiError
 } from './lib/api'
 
-const DashboardApiContext = createContext<WebApiClient | null>(null)
+type ViewId = 'overview' | 'peers' | 'tunnel'
 
 function App(): React.JSX.Element {
-  return <RouterProvider router={router} />
-}
+  const [view, setView] = useState<ViewId>('overview')
+  const [ready, setReady] = useState(false)
+  const { getToken, isLoaded, isSignedIn } = useAuth()
+  const apiBaseUrl = resolveWebApiBaseUrl()
 
-function HomePage(): React.JSX.Element {
-  const { isLoaded, isSignedIn } = useAuth()
+  const api = useMemo<WebApiClient | null>(() => {
+    if (!apiBaseUrl) {
+      return null
+    }
 
-  if (!isLoaded) {
+    return createWebApiClient({ baseUrl: apiBaseUrl, getToken })
+  }, [apiBaseUrl, getToken])
+
+  useEffect(() => {
+    if (isLoaded) {
+      setReady(true)
+    }
+  }, [isLoaded])
+
+  if (!ready) {
     return <LoadingScreen />
   }
 
-  return isSignedIn ? <Navigate to="/dashboard" replace /> : <LandingScreen />
+  if (!isSignedIn) {
+    return <LandingScreen />
+  }
+
+  if (!api) {
+    return (
+      <div className="app-frame">
+        <div className="surface config-panel">
+          <p className="eyebrow">Web API required</p>
+          <h1 className="page-title">Desktop UI is ready, but the API base URL is missing.</h1>
+          <p className="lead">
+            Set <code>VITE_WEB_API_URL</code> or <code>VITE_WEB_APP_URL</code> in the desktop app
+            env so the renderer can call the future <code>/app/api</code> routes from the web app.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  return <DashboardShell api={api} activeView={view} onNavigate={setView} baseUrl={apiBaseUrl} />
 }
 
 function LoadingScreen(): React.JSX.Element {
@@ -61,12 +89,19 @@ function LandingScreen(): React.JSX.Element {
           </div>
         </div>
         <div className="auth-actions">
-          <Link to="/auth/sign-in" className="ghost-button">
-            Sign in
-          </Link>
-          <Link to="/auth/sign-up" className="primary-button">
-            Create account
-          </Link>
+          {/* <SignInButton>
+            <button type="button" className="ghost-button">
+              Sign in
+            </button>
+          </SignInButton> */}
+          <Show when="signed-out">
+            <SignIn />
+          </Show>
+          <SignUpButton>
+            <button type="button" className="primary-button">
+              Create account
+            </button>
+          </SignUpButton>
         </div>
       </section>
 
@@ -81,12 +116,16 @@ function LandingScreen(): React.JSX.Element {
             shell that mirrors the web dashboard you already designed.
           </p>
           <div className="cta-row">
-            <Link to="/auth/sign-up" className="primary-button large">
-              Get started
-            </Link>
-            <Link to="/auth/sign-in" className="secondary-button large">
-              Sign in to dashboard
-            </Link>
+            <SignUpButton>
+              <button type="button" className="primary-button large">
+                Get started
+              </button>
+            </SignUpButton>
+            <SignInButton>
+              <button type="button" className="secondary-button large">
+                Sign in to dashboard
+              </button>
+            </SignInButton>
           </div>
         </div>
 
@@ -124,25 +163,17 @@ function LandingScreen(): React.JSX.Element {
   )
 }
 
-function DashboardLayout(): React.JSX.Element {
-  const { getToken, isLoaded, isSignedIn } = useAuth()
-  const apiBaseUrl = resolveWebApiBaseUrl()
-  const api = useMemo<WebApiClient | null>(() => {
-    return apiBaseUrl ? createWebApiClient({ baseUrl: apiBaseUrl, getToken }) : null
-  }, [apiBaseUrl, getToken])
-
-  if (!isLoaded) {
-    return <LoadingScreen />
-  }
-
-  if (!isSignedIn) {
-    return <Navigate to="/auth/sign-in" replace />
-  }
-
-  if (!api) {
-    return <MissingApiScreen />
-  }
-
+function DashboardShell({
+  api,
+  activeView,
+  baseUrl,
+  onNavigate
+}: {
+  api: WebApiClient
+  activeView: ViewId
+  baseUrl: string
+  onNavigate: (view: ViewId) => void
+}): React.JSX.Element {
   return (
     <div className="dashboard-layout">
       <aside className="sidebar surface">
@@ -155,14 +186,29 @@ function DashboardLayout(): React.JSX.Element {
             </div>
           </div>
           <p className="sidebar-note">
-            API: <span>{apiBaseUrl}</span>
+            API: <span>{baseUrl}</span>
           </p>
         </div>
 
         <nav className="nav-list" aria-label="Primary">
-          <NavButton to="/dashboard" label="Overview" hint="Status and metrics" />
-          <NavButton to="/dashboard/peers" label="Peers" hint="Request configs" />
-          <NavButton to="/dashboard/tunnel" label="Exit node" hint="Bring the tunnel up or down" />
+          <NavButton
+            active={activeView === 'overview'}
+            onClick={() => onNavigate('overview')}
+            label="Overview"
+            hint="Status and metrics"
+          />
+          <NavButton
+            active={activeView === 'peers'}
+            onClick={() => onNavigate('peers')}
+            label="Peers"
+            hint="Request configs"
+          />
+          <NavButton
+            active={activeView === 'tunnel'}
+            onClick={() => onNavigate('tunnel')}
+            label="Exit node"
+            hint="Bring the tunnel up or down"
+          />
         </nav>
 
         <div className="sidebar-footer">
@@ -179,25 +225,14 @@ function DashboardLayout(): React.JSX.Element {
           <div className="topbar-badge">Clerk authenticated</div>
         </header>
 
-        <DashboardApiContext.Provider value={api}>
-          <Outlet />
-        </DashboardApiContext.Provider>
+        {activeView === 'overview' ? (
+          <OverviewView api={api} />
+        ) : activeView === 'peers' ? (
+          <PeersView api={api} />
+        ) : (
+          <TunnelView api={api} />
+        )}
       </main>
-    </div>
-  )
-}
-
-function MissingApiScreen(): React.JSX.Element {
-  return (
-    <div className="app-frame">
-      <div className="surface config-panel">
-        <p className="eyebrow">Web API required</p>
-        <h1 className="page-title">Desktop UI is ready, but the API base URL is missing.</h1>
-        <p className="lead">
-          Set <code>VITE_WEB_API_URL</code> or <code>VITE_WEB_APP_URL</code> in the desktop app env
-          so the renderer can call the web app API routes.
-        </p>
-      </div>
     </div>
   )
 }
@@ -211,7 +246,7 @@ function OverviewView({ api }: { api: WebApiClient }): React.JSX.Element {
   useEffect(() => {
     let cancelled = false
 
-    async function load(): Promise<void> {
+    async function load() {
       setLoading(true)
       setError('')
 
@@ -268,9 +303,6 @@ function OverviewView({ api }: { api: WebApiClient }): React.JSX.Element {
             <DetailRow label="Assigned peer records" value={String(peers.length)} />
             <DetailRow label="Server config path" value={status?.serverConfigPath ?? '—'} />
           </dl>
-          <Link to="/dashboard/tunnel" className="back-link">
-            Manage tunnel →
-          </Link>
         </article>
 
         <article className="surface card">
@@ -280,9 +312,6 @@ function OverviewView({ api }: { api: WebApiClient }): React.JSX.Element {
             public key is sent to the web API. The private key is only injected into the returned
             config once.
           </p>
-          <Link to="/dashboard/peers" className="back-link">
-            View peers →
-          </Link>
         </article>
       </div>
     </section>
@@ -291,11 +320,13 @@ function OverviewView({ api }: { api: WebApiClient }): React.JSX.Element {
 
 function PeersView({ api }: { api: WebApiClient }): React.JSX.Element {
   const [peers, setPeers] = useState<Peer[]>([])
+  const [createdPeer, setCreatedPeer] = useState<CreatedPeer | null>(null)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [pendingAction, setPendingAction] = useState(false)
+  const [copyLabel, setCopyLabel] = useState('Copy config')
 
-  const refresh = async (): Promise<void> => {
+  const refresh = async () => {
     try {
       const nextPeers = await api.getPeers()
       setPeers(nextPeers)
@@ -307,7 +338,7 @@ function PeersView({ api }: { api: WebApiClient }): React.JSX.Element {
   useEffect(() => {
     let cancelled = false
 
-    async function load(): Promise<void> {
+    async function load() {
       setLoading(true)
       setError('')
 
@@ -334,18 +365,47 @@ function PeersView({ api }: { api: WebApiClient }): React.JSX.Element {
     }
   }, [api])
 
-  async function revokePeer(peerId: string): Promise<void> {
+  async function requestConfig() {
+    setPendingAction(true)
+    setError('')
+    setCopyLabel('Copy config')
+
+    try {
+      const peer = await api.requestPeerConfig()
+      setCreatedPeer(peer)
+      await refresh()
+    } catch (cause) {
+      setError(readError(cause, 'Unable to request a peer config.'))
+    } finally {
+      setPendingAction(false)
+    }
+  }
+
+  async function revokePeer(peerId: string) {
     setPendingAction(true)
     setError('')
 
     try {
       await api.revokePeer(peerId)
+      if (createdPeer?.peer.id === peerId) {
+        setCreatedPeer(null)
+      }
       await refresh()
     } catch (cause) {
       setError(readError(cause, 'Unable to revoke peer.'))
     } finally {
       setPendingAction(false)
     }
+  }
+
+  async function copyConfig() {
+    if (!createdPeer) {
+      return
+    }
+
+    await navigator.clipboard.writeText(createdPeer.clientConfig)
+    setCopyLabel('Copied')
+    window.setTimeout(() => setCopyLabel('Copy config'), 1500)
   }
 
   return (
@@ -355,12 +415,54 @@ function PeersView({ api }: { api: WebApiClient }): React.JSX.Element {
           <p className="eyebrow">WireGuard clients</p>
           <h2 className="page-subtitle">Peers</h2>
         </div>
-        <Link to="/dashboard/peers/new" className="primary-button">
-          Create peer
-        </Link>
+        <button
+          type="button"
+          className="primary-button"
+          onClick={requestConfig}
+          disabled={pendingAction}
+        >
+          {pendingAction ? 'Working…' : 'Request config'}
+        </button>
       </div>
 
       {error ? <ErrorBanner message={error} /> : null}
+
+      {createdPeer ? (
+        <article className="surface card config-card">
+          <div className="config-card-header">
+            <div>
+              <p className="eyebrow">Latest requested config</p>
+              <h3 className="section-title">{createdPeer.peer.id}</h3>
+            </div>
+            <div className="config-meta">
+              <span className="status-pill">{createdPeer.peer.status}</span>
+              <span className="mono">{createdPeer.peer.allocatedIp}/32</span>
+            </div>
+          </div>
+
+          <div className="config-grid">
+            <div>
+              <p className="field-label">Endpoint</p>
+              <p className="mono wrap">{createdPeer.endpoint}</p>
+            </div>
+            <div>
+              <p className="field-label">Public key</p>
+              <p className="mono wrap">{createdPeer.peer.publicKey}</p>
+            </div>
+          </div>
+
+          <label className="config-textarea-wrap">
+            <span className="field-label">Client config</span>
+            <textarea className="config-textarea mono" readOnly value={createdPeer.clientConfig} />
+          </label>
+
+          <div className="actions-row">
+            <button type="button" className="secondary-button" onClick={copyConfig}>
+              {copyLabel}
+            </button>
+          </div>
+        </article>
+      ) : null}
 
       <article className="surface table-card">
         <div className="table-header">
@@ -396,13 +498,7 @@ function PeersView({ api }: { api: WebApiClient }): React.JSX.Element {
                 <tr key={peer.id}>
                   <td>
                     <div className="peer-cell">
-                      <Link
-                        to="/dashboard/peers/$peerId"
-                        params={{ peerId: peer.id }}
-                        className="peer-name"
-                      >
-                        {peer.id}
-                      </Link>
+                      <p className="peer-name">{peer.id}</p>
                       <p className="peer-key mono">{peer.publicKey}</p>
                     </div>
                   </td>
@@ -447,7 +543,7 @@ function TunnelView({ api }: { api: WebApiClient }): React.JSX.Element {
   const [loading, setLoading] = useState(true)
   const [pendingAction, setPendingAction] = useState(false)
 
-  const refresh = async (): Promise<void> => {
+  const refresh = async () => {
     setError('')
 
     try {
@@ -461,7 +557,7 @@ function TunnelView({ api }: { api: WebApiClient }): React.JSX.Element {
   useEffect(() => {
     let cancelled = false
 
-    async function load(): Promise<void> {
+    async function load() {
       setLoading(true)
       try {
         const nextStatus = await api.getTunnelStatus()
@@ -486,7 +582,7 @@ function TunnelView({ api }: { api: WebApiClient }): React.JSX.Element {
     }
   }, [api])
 
-  async function changeState(nextState: 'up' | 'down'): Promise<void> {
+  async function changeState(nextState: 'up' | 'down') {
     setPendingAction(true)
     setError('')
 
@@ -569,22 +665,21 @@ function TunnelView({ api }: { api: WebApiClient }): React.JSX.Element {
 }
 
 function NavButton({
-  to,
+  active,
   label,
-  hint
+  hint,
+  onClick
 }: {
-  to: '/dashboard' | '/dashboard/peers' | '/dashboard/tunnel'
+  active: boolean
   label: string
   hint: string
+  onClick: () => void
 }): React.JSX.Element {
-  const pathname = useRouterState({ select: (state) => state.location.pathname })
-  const active = to === '/dashboard' ? pathname === to : pathname.startsWith(to)
-
   return (
-    <Link to={to} className={`nav-button ${active ? 'active' : ''}`}>
+    <button type="button" className={`nav-button ${active ? 'active' : ''}`} onClick={onClick}>
       <span className="nav-button-label">{label}</span>
       <span className="nav-button-hint">{hint}</span>
-    </Link>
+    </button>
   )
 }
 
@@ -676,251 +771,5 @@ function isWebApiError(value: unknown): value is WebApiError {
 function formatDate(value: string): string {
   return new Date(value).toLocaleString()
 }
-
-function useDashboardApi(): WebApiClient {
-  const api = useContext(DashboardApiContext)
-  if (!api) {
-    throw new Error('Dashboard API is unavailable.')
-  }
-  return api
-}
-
-function SignInPage(): React.JSX.Element {
-  const { isLoaded, isSignedIn } = useAuth()
-
-  if (!isLoaded) {
-    return <LoadingScreen />
-  }
-
-  if (isSignedIn) {
-    return <Navigate to="/dashboard" replace />
-  }
-
-  return (
-    <main className="auth-page">
-      <SignIn />
-    </main>
-  )
-}
-
-function SignUpPage(): React.JSX.Element {
-  const { isLoaded, isSignedIn } = useAuth()
-
-  if (!isLoaded) {
-    return <LoadingScreen />
-  }
-
-  if (isSignedIn) {
-    return <Navigate to="/dashboard" replace />
-  }
-
-  return (
-    <main className="auth-page">
-      <SignUp />
-    </main>
-  )
-}
-
-function DashboardPage(): React.JSX.Element {
-  return <OverviewView api={useDashboardApi()} />
-}
-
-function PeersPage(): React.JSX.Element {
-  return <PeersView api={useDashboardApi()} />
-}
-
-function TunnelPage(): React.JSX.Element {
-  return <TunnelView api={useDashboardApi()} />
-}
-
-function NewPeerPage(): React.JSX.Element {
-  const api = useDashboardApi()
-  const [result, setResult] = useState<CreatedPeer | null>(null)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  async function createPeer(): Promise<void> {
-    setLoading(true)
-    setError('')
-    try {
-      setResult(await api.requestPeerConfig())
-    } catch (cause) {
-      setError(readError(cause, 'Unable to create peer.'))
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <section className="stack narrow">
-      <Link to="/dashboard/peers" className="back-link">
-        ← All peers
-      </Link>
-      <div>
-        <p className="eyebrow">WireGuard clients</p>
-        <h2 className="page-subtitle">Create peer</h2>
-        <p className="lead">
-          Create a client configuration, then copy it into the official WireGuard app. Treat this
-          configuration like a password.
-        </p>
-      </div>
-      {error ? <ErrorBanner message={error} /> : null}
-      {!result ? (
-        <article className="surface card">
-          <h3 className="section-title">New client configuration</h3>
-          <p className="card-copy">
-            The client keypair is generated locally. Save the resulting configuration now; its
-            private key is not retained by the control panel.
-          </p>
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => void createPeer()}
-            disabled={loading}
-          >
-            {loading ? 'Creating peer…' : 'Create configuration'}
-          </button>
-        </article>
-      ) : (
-        <article className="surface card config-card">
-          <p className="eyebrow success-text">Peer created</p>
-          <h3 className="section-title">{result.peer.allocatedIp}/32</h3>
-          <textarea className="config-textarea mono" readOnly value={result.clientConfig} />
-          <Link
-            to="/dashboard/peers/$peerId"
-            params={{ peerId: result.peer.id }}
-            className="back-link"
-          >
-            View peer details →
-          </Link>
-        </article>
-      )}
-    </section>
-  )
-}
-
-function PeerDetailPage(): React.JSX.Element {
-  const api = useDashboardApi()
-  const { peerId } = useRouterState({
-    select: (state) => state.matches.at(-1)?.params as { peerId: string }
-  })
-  const [peer, setPeer] = useState<Peer | null>(null)
-  const [error, setError] = useState('')
-  const [revoking, setRevoking] = useState(false)
-
-  useEffect(() => {
-    void api
-      .getPeer(peerId)
-      .then(setPeer)
-      .catch((cause) => setError(readError(cause, 'Unable to load peer.')))
-  }, [api, peerId])
-
-  async function revokePeer(): Promise<void> {
-    if (!window.confirm('Revoke this peer? Its tunnel access will be removed.')) return
-    setRevoking(true)
-    setError('')
-    try {
-      setPeer(await api.revokePeer(peerId))
-    } catch (cause) {
-      setError(readError(cause, 'Unable to revoke peer.'))
-    } finally {
-      setRevoking(false)
-    }
-  }
-
-  return (
-    <section className="stack narrow">
-      <Link to="/dashboard/peers" className="back-link">
-        ← All peers
-      </Link>
-      {error ? <ErrorBanner message={error} /> : null}
-      {!peer && !error ? <p className="card-copy">Loading peer…</p> : null}
-      {peer ? (
-        <article className="surface card">
-          <div className="config-card-header">
-            <div>
-              <p className="eyebrow">Peer</p>
-              <h2 className="page-subtitle">{peer.id}</h2>
-            </div>
-            <span className={`status-pill ${peer.status === 'active' ? 'success' : ''}`}>
-              {peer.status}
-            </span>
-          </div>
-          <dl className="detail-list">
-            <DetailRow label="Assigned address" value={`${peer.allocatedIp}/32`} />
-            <DetailRow label="Public key" value={peer.publicKey} />
-            <DetailRow label="Created" value={formatDate(peer.createdAt)} />
-          </dl>
-          {peer.status === 'active' ? (
-            <button
-              type="button"
-              className="danger-button"
-              onClick={() => void revokePeer()}
-              disabled={revoking}
-            >
-              {revoking ? 'Revoking…' : 'Revoke peer'}
-            </button>
-          ) : null}
-        </article>
-      ) : null}
-    </section>
-  )
-}
-
-const rootRoute = createRootRoute({ component: Outlet })
-const homeRoute = createRoute({ getParentRoute: () => rootRoute, path: '/', component: HomePage })
-const authRoute = createRoute({ getParentRoute: () => rootRoute, path: 'auth', component: Outlet })
-const signInRoute = createRoute({
-  getParentRoute: () => authRoute,
-  path: 'sign-in',
-  component: SignInPage
-})
-const signUpRoute = createRoute({
-  getParentRoute: () => authRoute,
-  path: 'sign-up',
-  component: SignUpPage
-})
-const dashboardRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: 'dashboard',
-  component: DashboardLayout
-})
-const dashboardIndexRoute = createRoute({
-  getParentRoute: () => dashboardRoute,
-  path: '/',
-  component: DashboardPage
-})
-const peersRoute = createRoute({
-  getParentRoute: () => dashboardRoute,
-  path: 'peers',
-  component: PeersPage
-})
-const newPeerRoute = createRoute({
-  getParentRoute: () => peersRoute,
-  path: 'new',
-  component: NewPeerPage
-})
-const peerDetailRoute = createRoute({
-  getParentRoute: () => peersRoute,
-  path: '$peerId',
-  component: PeerDetailPage
-})
-const tunnelRoute = createRoute({
-  getParentRoute: () => dashboardRoute,
-  path: 'tunnel',
-  component: TunnelPage
-})
-
-const routeTree = rootRoute.addChildren([
-  homeRoute,
-  authRoute.addChildren([signInRoute, signUpRoute]),
-  dashboardRoute.addChildren([
-    dashboardIndexRoute,
-    peersRoute.addChildren([newPeerRoute, peerDetailRoute]),
-    tunnelRoute
-  ])
-])
-
-const router = createRouter({ routeTree, history: createHashHistory() })
 
 export default App
