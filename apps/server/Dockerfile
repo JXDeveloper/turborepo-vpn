@@ -35,6 +35,12 @@ COPY packages/expo-wireguard packages/expo-wireguard
 # Build server
 RUN pnpm --filter server build
 
+# Create a non-root user to run the application
+RUN useradd -m -u 1001 -s /bin/bash appuser && \
+    chown -R appuser:appuser /usr/src/app
+
+USER appuser
+
 # Server HTTP API
 EXPOSE 8080 51280/udp 3001
 

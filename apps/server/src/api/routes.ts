@@ -8,22 +8,13 @@ import { createMiddleware } from "hono/factory";
 import { WgConfig } from "@shurahbil/wireguard-tools-2";
 
 function getEndpointAddress(): string {
-  if (process.env.WG_ENDPOINT) {
-    return process.env.WG_ENDPOINT;
+  if (!process.env.WG_ENDPOINT) {
+    throw new Error(
+      "WG_ENDPOINT environment variable is required for WireGuard endpoint configuration. " +
+      "Please set WG_ENDPOINT to your server's public IP or domain (e.g., 'example.com:51820' or '1.2.3.4:51820')"
+    );
   }
-  const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name] || []) {
-      if (
-        !iface.internal &&
-        iface.family === "IPv4" &&
-        !iface.address.startsWith("172.17.")
-      ) {
-        return `${iface.address}:51820`;
-      }
-    }
-  }
-  return "127.0.0.1:51820";
+  return process.env.WG_ENDPOINT;
 }
 
 function getDefaultWanInterface(): string {
