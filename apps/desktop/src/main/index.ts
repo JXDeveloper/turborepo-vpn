@@ -3,8 +3,11 @@ import { app, BrowserWindow, ipcMain, net, protocol, session } from 'electron'
 import { createClerkBridge } from '@clerk/electron'
 import { storage } from '@clerk/electron/storage'
 import { pathToFileURL } from 'url'
-import { join } from 'path'
+import path, { join } from 'path'
 import { /*electronApp, optimizer,*/ is } from '@electron-toolkit/utils'
+import { WgConfig } from '@shurahbil/wireguard-tools-2'
+import { genKeypair } from '@my-vpn/crypto-utils'
+import fs from 'fs'
 // import icon from '../../resources/icon.png?asset'
 
 const clerk = createClerkBridge({
@@ -33,7 +36,51 @@ const clerk = createClerkBridge({
 const fapiHost = 'nearby-jawfish-86.clerk.accounts.dev'
 
 if (clerk.isPrimaryInstance) {
-  app.whenReady().then(() => {
+  app.whenReady().then(async () => {
+    const CLIENT_CONFIG_DIR = path.join(process.cwd(), 'configs')
+    const CLIENT_CONFIG_PATH = path.join(CLIENT_CONFIG_DIR, 'wg0.conf')
+
+    if (!fs.existsSync(CLIENT_CONFIG_DIR)) {
+      fs.mkdirSync(CLIENT_CONFIG_DIR)
+    }
+
+    // ! vpn connect function
+    ipcMain.handle('vpn:connect', async (_, region) => {
+      const wgConfig = new WgConfig({
+        filePath: CLIENT_CONFIG_PATH
+      })
+
+      try {
+        await wgConfig.generateKeys()
+        console.log('keys generated')
+      } catch {
+        console.log('key generation failed //fallback')
+        const pair = await genKeypair()
+        wgConfig.wgInterface.privateKey = pair.privateKey
+        wgConfig.publicKey = pair.publicKey
+      }
+      console.log('wg config created here it is:', wgConfig)
+      await wgConfig.writeToFile()
+
+      // todo: make request to web api for connection
+      try {
+        await fetch('http:localhost:3000/api/vpn/peer/create', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer '
+          },
+          body: JSON.stringify({})
+        })
+      } catch {}
+      console.log('vpn connect request came in and region requested is:', region)
+    })
+    // // vpn connect function ending
+    // ! vpn connect function ending
+
+    ipcMain.handle('vpn:disconnect', async () => {
+      console.log('vpn disconnect')
+    })
     ipcMain.handle('ping', () => {
       console.log('pong')
     })
