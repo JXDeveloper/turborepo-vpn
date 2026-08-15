@@ -64,7 +64,7 @@ if (clerk.isPrimaryInstance) {
 
       // todo: make request to web api for connection
       try {
-        await fetch('http:localhost:3000/api/vpn/peer/create', {
+        const response = await fetch('http:localhost:3000/api/vpn/peer/create', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -72,7 +72,13 @@ if (clerk.isPrimaryInstance) {
           },
           body: JSON.stringify({})
         })
-      } catch {}
+        if (!response.ok) {
+          throw new Error(`Peer provisioning failed: ${response.status}`)
+        }
+      } catch (error) {
+        console.error('Peer provisioning failed', error)
+        throw error
+      }
       console.log('vpn connect request came in and region requested is:', region)
     })
     // // vpn connect function ending
