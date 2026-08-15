@@ -14,10 +14,10 @@ export interface Vpn {
 
 export const vpn: Vpn = {
   async connect(region: string) {
-    ipcRenderer.invoke('vpn:connect', region)
+    return ipcRenderer.invoke('vpn:connect', region)
   },
   async disconnect() {
-    ipcRenderer.invoke('vpn:disconnect')
+    return ipcRenderer.invoke('vpn:disconnect')
   }
 }
 
