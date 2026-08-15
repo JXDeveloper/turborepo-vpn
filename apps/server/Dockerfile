@@ -11,6 +11,7 @@ RUN apt-get update \
   iputils-ping \
   ca-certificates \
   curl \
+  nano \
   && rm -rf /var/lib/apt/lists/*
 
 # Enable pnpm

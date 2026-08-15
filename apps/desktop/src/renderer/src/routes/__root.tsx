@@ -7,9 +7,6 @@ const RootLayout = () => (
     <div className="p-2 flex gap-2">
       <Link to="/" className="[&.active]:font-bold">
         Home
-      </Link>{' '}
-      <Link to="/about" className="[&.active]:font-bold">
-        About
       </Link>
       <Show when="signed-out">
         <Link to="/sign-in" className="[&.active]:font-bold">
