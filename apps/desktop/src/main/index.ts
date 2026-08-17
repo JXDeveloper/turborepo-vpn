@@ -45,7 +45,7 @@ if (clerk.isPrimaryInstance) {
     }
 
     // ! vpn connect function
-    ipcMain.handle('vpn:connect', async (_, region) => {
+    ipcMain.handle('vpn:connect', async (_, { regionId, token }) => {
       const wgConfig = new WgConfig({
         filePath: CLIENT_CONFIG_PATH
       })
@@ -68,7 +68,7 @@ if (clerk.isPrimaryInstance) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer '
+            Authorization: `Bearer ${token}`
           },
           body: JSON.stringify({})
         })
@@ -79,7 +79,7 @@ if (clerk.isPrimaryInstance) {
         console.error('Peer provisioning failed', error)
         throw error
       }
-      console.log('vpn connect request came in and region requested is:', region)
+      console.log('vpn connect request came in and region requested is:', regionId)
     })
     // // vpn connect function ending
     // ! vpn connect function ending

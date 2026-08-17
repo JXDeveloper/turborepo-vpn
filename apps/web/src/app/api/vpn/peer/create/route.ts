@@ -3,6 +3,8 @@ import { verifyToken } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
+  const authorization = request.headers.get("Authorization");
+  console.log(authorization);
   try {
     const payload = await request.json();
 
