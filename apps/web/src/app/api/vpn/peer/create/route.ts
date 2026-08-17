@@ -1,10 +1,19 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { cookies } from "next/headers";
 
 export async function POST(request: Request) {
-  const authorization = request.headers.get("Authorization");
-  console.log(authorization);
+  const { isAuthenticated, userId } = await auth();
+
+  if (!isAuthenticated || !userId) {
+    return NextResponse.json(
+      { message: "Error authenticating the user" },
+      { status: 401 },
+    );
+  } else {
+    console.log("i think it cannot authenticate request itself");
+  }
+
   try {
     const payload = await request.json();
 
