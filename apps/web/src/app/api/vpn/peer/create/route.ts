@@ -5,13 +5,13 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    await signedApiRequest("/peers", "POST", {
+    let response = await signedApiRequest("/peers", "POST", {
       publicKey: body.publicKey,
     });
 
     // Respond with a 200 OK status to acknowledge receipt of the webhook
     return NextResponse.json(
-      { message: "Webhook received successfully" },
+      { message: "Webhook received successfully", data: response },
       { status: 200 },
     );
   } catch (error) {
