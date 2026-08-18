@@ -6,15 +6,18 @@ exposeClerkBridge({ passkeys: true })
 
 // Custom APIs for renderer
 const api = {}
-
+type ConnectParams = {
+  regionId: string
+  token: string
+}
 export interface Vpn {
-  connect(regoin: string): Promise<void>
+  connect(connectParams: ConnectParams): Promise<void>
   disconnect(): Promise<void>
 }
 
 export const vpn: Vpn = {
-  async connect(region: string) {
-    return ipcRenderer.invoke('vpn:connect', region)
+  async connect(connectParams: ConnectParams) {
+    return ipcRenderer.invoke('vpn:connect', connectParams)
   },
   async disconnect() {
     return ipcRenderer.invoke('vpn:disconnect')

@@ -34,6 +34,20 @@ const clerk = createClerkBridge({
 // ])
 
 const fapiHost = 'nearby-jawfish-86.clerk.accounts.dev'
+type CreatePeerResponse = {
+  message: string
+  peer: {
+    id: string
+    publicKey: string
+    allocatedIp: string
+    status: string
+    createdAt: string
+  }
+  endpoint: string
+  serverPublicKey: string
+  allowedIps: string[]
+  clientConfig: string
+}
 
 if (clerk.isPrimaryInstance) {
   app.whenReady().then(async () => {
@@ -45,7 +59,7 @@ if (clerk.isPrimaryInstance) {
     }
 
     // ! vpn connect function
-    ipcMain.handle('vpn:connect', async (_, region) => {
+    ipcMain.handle('vpn:connect', async (_, { regionId, token }) => {
       const wgConfig = new WgConfig({
         filePath: CLIENT_CONFIG_PATH
       })
@@ -54,6 +68,7 @@ if (clerk.isPrimaryInstance) {
         await wgConfig.generateKeys()
         console.log('keys generated')
       } catch {
+        // todo yet to be tested
         console.log('key generation failed //fallback')
         const pair = await genKeypair()
         wgConfig.wgInterface.privateKey = pair.privateKey
@@ -68,18 +83,37 @@ if (clerk.isPrimaryInstance) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer '
+            Authorization: `Bearer ${token}`
           },
-          body: JSON.stringify({})
+          body: JSON.stringify({
+            publicKey: wgConfig.publicKey
+          })
         })
         if (!response.ok) {
           throw new Error(`Peer provisioning failed: ${response.status}`)
         }
+        const body = await response.json()
+        const createPeerResponse: CreatePeerResponse = body.data
+        console.log('createPeerResponse:', createPeerResponse)
+        console.log('here is allowedIps ')
+
+        // todo create peer
+        wgConfig.wgInterface.address = [createPeerResponse.allowedIps[0]]
+        console.log('---------------------------------------- get to this line')
+        wgConfig.wgInterface.dns = ['10.10.1.1']
+
+        wgConfig.addPeer({
+          allowedIps: ['0.0.0.0/0', '::/0'],
+          publicKey: createPeerResponse.serverPublicKey,
+          endpoint: createPeerResponse.endpoint
+        })
+
+        await wgConfig.writeToFile()
       } catch (error) {
         console.error('Peer provisioning failed', error)
         throw error
       }
-      console.log('vpn connect request came in and region requested is:', region)
+      console.log('vpn connect request came in and region requested is:', regionId)
     })
     // // vpn connect function ending
     // ! vpn connect function ending

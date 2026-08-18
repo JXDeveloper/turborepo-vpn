@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
-import { verifyToken } from "@clerk/nextjs/server";
-import { cookies } from "next/headers";
+import { signedApiRequest } from "@/lib/server/apiRequests";
 
 export async function POST(request: Request) {
   try {
-    const payload = await request.json();
+    const body = await request.json();
 
-    console.log("-------- Webhook Payload Received--------");
-    console.log(JSON.stringify(payload, null, 2));
+    let response = await signedApiRequest("/peers", "POST", {
+      publicKey: body.publicKey,
+    });
 
     // Respond with a 200 OK status to acknowledge receipt of the webhook
     return NextResponse.json(
-      { message: "Webhook received successfully" },
+      { message: "Webhook received successfully", data: response },
       { status: 200 },
     );
   } catch (error) {

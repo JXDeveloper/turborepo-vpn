@@ -1,4 +1,4 @@
-import { Show } from '@clerk/electron/react'
+import { getToken, Show } from '@clerk/electron/react'
 import { createFileRoute } from '@tanstack/react-router'
 // import { MouseEvent } from 'react'
 
@@ -8,8 +8,16 @@ export const Route = createFileRoute('/')({
 
 function Index() {
   async function handleConnect() {
+    const regionId = 'region'
+    try {
+      const token = await getToken()
+      if (token == null) throw Error('Not Signed In')
+      await window.vpn.connect({ regionId, token })
+    } catch {
+      // todo implement visual signal for user in app
+      console.log('You may be not authored to do the request')
+    }
     await window.vpn.disconnect()
-    await window.vpn.connect('region')
   }
   return (
     <div className="p-2">
