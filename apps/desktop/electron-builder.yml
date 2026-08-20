@@ -1,5 +1,5 @@
 appId: com.electron.app
-productName: desktop
+productName: metro-vpn
 directories:
   buildResources: build
 files:
@@ -11,6 +11,11 @@ files:
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
 asarUnpack:
   - resources/**
+extraResources:
+  - from: native/linux/target/debug/linux-vpn-agent
+    to: native/linux
+  - from: packaging/linux/conf/
+    to: packaging/linux
 win:
   executableName: desktop
 nsis:
@@ -40,6 +45,9 @@ linux:
     - name: My VPN
       schemes:
         - my-vpn
+
+deb:
+  afterInstall: packaging/linux/postinst
         
 appImage:
   artifactName: ${name}-${version}.${ext}

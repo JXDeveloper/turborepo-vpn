@@ -1,0 +1,8 @@
+[package]
+name = "linux-vpn-agent"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+tokio = { version = "1.53.1", features = ["full"] }
+zbus = "5.19.0"
