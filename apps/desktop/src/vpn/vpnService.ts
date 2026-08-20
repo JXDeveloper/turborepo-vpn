@@ -1,8 +1,9 @@
 import { VpnConfig } from './vpnConfig'
-import { type Keypair, genKeypair } from '@my-vpn/crypto-utils'
+import { genKeypair } from '@my-vpn/crypto-utils'
+// import { type Keypair } from '@my-vpn/crypto-utils'
 import { WgConfig } from '@shurahbil/wireguard-tools-2'
 import path from 'path'
-import fs from 'fs'
+// import fs from 'fs'
 
 type ServerConfigs = {
   endPointIp: string
@@ -39,7 +40,9 @@ export const linuxVpnService: VpnService = {
     }
     await wgConfig.writeToFile()
   },
-  async createConfigsByServerConfigs(serverConfigs) {},
+  async createConfigsByServerConfigs(serverConfigs) {
+    console.log(serverConfigs)
+  },
   async connect(config) {
     console.log('will connect client with these configs', config)
   },
@@ -54,7 +57,7 @@ export const linuxVpnService: VpnService = {
 
 export const devVpnService: VpnService = {
   async createConfigs() {
-    const pair = await genKeypair()
+    // const pair = await genKeypair()
   },
   async createConfigsByServerConfigs(serverConfigs) {
     console.log('will connect client with these configs', serverConfigs)
