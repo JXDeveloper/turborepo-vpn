@@ -13,9 +13,9 @@ asarUnpack:
   - resources/**
 extraResources:
   - from: native/linux/target/debug/linux-vpn-agent
-    to: native/linux
+    to: native/linux/linux-vpn-agent
   - from: packaging/linux/conf/
-    to: packaging/linux
+    to: packaging/linux/
 win:
   executableName: desktop
 nsis:
