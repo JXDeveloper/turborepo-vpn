@@ -31,11 +31,6 @@ impl VpnService {
         let credentials = dbus.get_connection_credentials(sender.clone()).await?;
         let name = Value::from(sender);
 
-        let uid = match credentials.unix_user_id() {
-            Some(val) => val,
-            None => exit(0),
-        };
-
         let name =
             OwnedValue::try_from(name).map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
 
