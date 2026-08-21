@@ -5,7 +5,6 @@ use zbus::fdo::Result;
 use zbus::interface;
 use zbus::message::Header;
 use zbus::proxy;
-use zbus::zvariant::Fd;
 use zbus::zvariant::OwnedValue;
 use zbus::zvariant::Value;
 
@@ -27,7 +26,6 @@ impl VpnService {
             .to_owned();
         let sender = zbus::names::BusName::from(sender);
 
-        let sender_name = sender.to_owned();
         let dbus = DBusProxy::new(connection).await?;
 
         let credentials = dbus.get_connection_credentials(sender.clone()).await?;
@@ -37,12 +35,6 @@ impl VpnService {
             Some(val) => val,
             None => exit(0),
         };
-        let pfd = match credentials.process_fd() {
-            Some(val) => val,
-            None => exit(0),
-        };
-        let pidfd_value = OwnedValue::try_from(Fd::from(pfd))
-            .map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
 
         let name =
             OwnedValue::try_from(name).map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
@@ -65,16 +57,6 @@ impl VpnService {
             .await?;
 
         println!("CheckAuthorization result: {:?}", result);
-
-        // Ok(());
-        // println!("uid: {:?}", uid);
-        // println!("pfd: {:?}", pfd);
-        // println!("subject_details: {:?}", subject_details);
-
-        println!("😈process_id: {:?}", uid);
-        println!("😈unix_user_id: {:?}", credentials.unix_user_id());
-        println!("😈unix_group_ids: {:?}", credentials.unix_group_ids());
-        println!("😈process_fd: {:?}", credentials.process_fd());
 
         Ok(())
     }
