@@ -13,6 +13,25 @@ struct VpnService;
 
 #[interface(name = "com.mycompany.Vpn")]
 impl VpnService {
+    async fn store_config(
+        &self,
+        region: String,
+        private_key: String,
+        server_public_key: String,
+        endpoint: String,
+        dns: Vec<String>,
+        allowed_ips: Vec<String>,
+    ) -> Result<()> {
+        println!("region: {region}");
+        println!("private_key: {private_key}");
+        println!("server_public_key: {server_public_key}");
+        println!("endpoint: {endpoint}");
+        println!("dns: {dns:?}");
+        println!("allowed_ips: {allowed_ips:?}");
+
+        Ok(())
+    }
+
     async fn connect(
         &self,
         #[zbus(header)] header: Header<'_>,
