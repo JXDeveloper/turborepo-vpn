@@ -1,6 +1,5 @@
 use zbus::Connection;
 use zbus::connection::Builder;
-use zbus::fdo::DBusProxy;
 use zbus::fdo::Result;
 use zbus::interface;
 use zbus::message::Header;
@@ -9,7 +8,6 @@ use zbus::zvariant::OwnedValue;
 use zbus::zvariant::Value;
 
 use std::collections::HashMap;
-use std::process::exit;
 
 struct VpnService;
 
@@ -26,9 +24,6 @@ impl VpnService {
             .to_owned();
         let sender = zbus::names::BusName::from(sender);
 
-        let dbus = DBusProxy::new(connection).await?;
-
-        let credentials = dbus.get_connection_credentials(sender.clone()).await?;
         let name = Value::from(sender);
 
         let name =
