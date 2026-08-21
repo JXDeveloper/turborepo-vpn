@@ -32,12 +32,11 @@ impl VpnService {
         let mut subject_details: HashMap<String, OwnedValue> = HashMap::new();
 
         subject_details.insert("name".to_string(), name);
-        // subject_details.insert("pidfd".to_string(), pidfd_value);
 
         let subject = ("system-bus-name".to_string(), subject_details);
         let action_id = "com.mycompany.vpn.connect".to_string();
         let details: HashMap<String, String> = HashMap::new();
-        let flags = 0;
+        let flags = 1u32;
         let cancellation_id = "";
 
         let polkit = polkitProxyProxy::new(connection).await?;
