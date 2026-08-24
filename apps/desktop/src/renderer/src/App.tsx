@@ -16,7 +16,7 @@ import {
   type WebApiClient,
   type WebApiError
 } from './lib/api'
-import type { VpnStatus } from "./../../preload/index.d";
+import type { VpnStatus } from './../../preload/index'
 
 type ViewId = 'overview' | 'client' | 'peers' | 'tunnel'
 
@@ -364,7 +364,15 @@ function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
             bus. If you are developing locally, fallback simulator mode is active. In production,
             start the service using:
           </p>
-          <pre className="mono" style={{ padding: '0.75rem', borderRadius: '4px', background: 'rgba(0,0,0,0.3)', margin: '0.5rem 0' }}>
+          <pre
+            className="mono"
+            style={{
+              padding: '0.75rem',
+              borderRadius: '4px',
+              background: 'rgba(0,0,0,0.3)',
+              margin: '0.5rem 0'
+            }}
+          >
             sudo systemctl start com.mycompany.vpn.service
           </pre>
         </article>
@@ -380,10 +388,7 @@ function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
           label="Active Region"
           value={vpnStatus?.region ? vpnStatus.region.toUpperCase() : 'None'}
         />
-        <MetricCard
-          label="Interface"
-          value={vpnStatus?.interface ?? '—'}
-        />
+        <MetricCard label="Interface" value={vpnStatus?.interface ?? '—'} />
       </div>
 
       <article className="surface card">
@@ -401,7 +406,9 @@ function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
 
         <div className="config-grid" style={{ margin: '1.5rem 0' }}>
           <div>
-            <label className="field-label" htmlFor="vpn-region-select">Target Region</label>
+            <label className="field-label" htmlFor="vpn-region-select">
+              Target Region
+            </label>
             <select
               id="vpn-region-select"
               value={region}
@@ -434,10 +441,17 @@ function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
         <div className="metric-detail-grid" style={{ marginBottom: '1.5rem' }}>
           <DetailCard label="Downloaded (Rx)" value={formatBytes(vpnStatus?.bytesRx)} />
           <DetailCard label="Uploaded (Tx)" value={formatBytes(vpnStatus?.bytesTx)} />
-          <DetailCard label="Gateway Endpoint" value={vpnStatus?.endpoint ?? '198.51.100.1:51820'} />
+          <DetailCard
+            label="Gateway Endpoint"
+            value={vpnStatus?.endpoint ?? '198.51.100.1:51820'}
+          />
           <DetailCard
             label="Latest Handshake"
-            value={vpnStatus?.latestHandshake ? `${Math.max(0, Math.floor(Date.now() / 1000) - vpnStatus.latestHandshake)}s ago` : '—'}
+            value={
+              vpnStatus?.latestHandshake
+                ? `${Math.max(0, Math.floor(Date.now() / 1000) - vpnStatus.latestHandshake)}s ago`
+                : '—'
+            }
           />
         </div>
 
@@ -469,8 +483,14 @@ function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
         <dl className="detail-list compact">
           <DetailRow label="D-Bus Bus Name" value="com.mycompany.Vpn" />
           <DetailRow label="D-Bus Object Path" value="/com/mycompany/Vpn" />
-          <DetailRow label="Polkit Policy Action" value="com.mycompany.vpn.connect (Active Local Session)" />
-          <DetailRow label="Config Storage Path" value={`/etc/mycompany-vpn/configs/${region}.conf`} />
+          <DetailRow
+            label="Polkit Policy Action"
+            value="com.mycompany.vpn.connect (Active Local Session)"
+          />
+          <DetailRow
+            label="Config Storage Path"
+            value={`/etc/mycompany-vpn/configs/${region}.conf`}
+          />
         </dl>
       </article>
     </section>
@@ -1032,5 +1052,3 @@ function formatDate(value: string): string {
 }
 
 export default App
-
-
