@@ -49,7 +49,6 @@ linux:
 
 deb:
   afterInstall: packaging/linux/postinst
-  beforeRemove: packaging/linux/prerm
   afterRemove: packaging/linux/postrm
         
 appImage:
