@@ -53,9 +53,14 @@ impl VpnService {
     fn sanitize_region(region: &str) -> std::result::Result<String, zbus::fdo::Error> {
         let cleaned = region.trim();
         if cleaned.is_empty() {
-            return Err(zbus::fdo::Error::InvalidArgs("Region name cannot be empty".into()));
+            return Err(zbus::fdo::Error::InvalidArgs(
+                "Region name cannot be empty".into(),
+            ));
         }
-        if !cleaned.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_') {
+        if !cleaned
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+        {
             return Err(zbus::fdo::Error::InvalidArgs(
                 "Invalid characters in region name (only alphanumeric, '-', '_' allowed)".into(),
             ));
@@ -89,7 +94,13 @@ impl VpnService {
 
         let polkit = PolkitProxy::new(connection).await?;
         let (authorized, _challenge, _details) = polkit
-            .check_authorization(subject, action_id.to_string(), details, flags, cancellation_id)
+            .check_authorization(
+                subject,
+                action_id.to_string(),
+                details,
+                flags,
+                cancellation_id,
+            )
             .await?;
 
         if !authorized {
@@ -108,16 +119,20 @@ impl VpnService {
         &self,
         region: String,
         private_key: String,
+        dns: Vec<String>,
+        Address: String,
         server_public_key: String,
         endpoint: String,
-        dns: Vec<String>,
         allowed_ips: Vec<String>,
     ) -> Result<()> {
         let safe_region = Self::sanitize_region(&region)?;
         let dir = Path::new(CONFIG_BASE_DIR);
 
         fs::create_dir_all(dir).map_err(|e| {
-            zbus::fdo::Error::Failed(format!("Failed to create config dir {}: {e}", dir.display()))
+            zbus::fdo::Error::Failed(format!(
+                "Failed to create config dir {}: {e}",
+                dir.display()
+            ))
         })?;
 
         let dns_line = if dns.is_empty() {
@@ -136,25 +151,35 @@ impl VpnService {
             "[Interface]\n\
              PrivateKey = {private_key}\n\
              {dns_line}\n\
+             Address={Address}
              [Peer]\n\
              PublicKey = {server_public_key}\n\
              Endpoint = {endpoint}\n\
-             AllowedIPs = {allowed_ips_str}\n\
-             PersistentKeepalive = 25\n"
+             AllowedIPs = {allowed_ips_str}\n"
         );
 
         let path = dir.join(format!("{safe_region}.conf"));
 
         fs::write(&path, config).map_err(|e| {
-            zbus::fdo::Error::Failed(format!("Failed to write config file {}: {e}", path.display()))
+            zbus::fdo::Error::Failed(format!(
+                "Failed to write config file {}: {e}",
+                path.display()
+            ))
         })?;
 
         // Permissions 0600 (owner read/write only)
         fs::set_permissions(&path, fs::Permissions::from_mode(0o600)).map_err(|e| {
-            zbus::fdo::Error::Failed(format!("Failed to set permissions on {}: {e}", path.display()))
+            zbus::fdo::Error::Failed(format!(
+                "Failed to set permissions on {}: {e}",
+                path.display()
+            ))
         })?;
 
-        println!("Stored WireGuard config for region '{}' at {}", safe_region, path.display());
+        println!(
+            "Stored WireGuard config for region '{}' at {}",
+            safe_region,
+            path.display()
+        );
         Ok(())
     }
 
@@ -181,13 +206,20 @@ impl VpnService {
 
         // If another tunnel is active, bring it down first
         if let Some(active) = lock.as_ref() {
-            println!("Disconnecting previous active tunnel '{}' before connecting to '{}'", active.region, safe_region);
+            println!(
+                "Disconnecting previous active tunnel '{}' before connecting to '{}'",
+                active.region, safe_region
+            );
             let _ = Command::new("wg-quick")
                 .args(["down", &active.config_path])
                 .status();
         }
 
-        println!("Connecting to WireGuard region '{}' via {}", safe_region, config_path.display());
+        println!(
+            "Connecting to WireGuard region '{}' via {}",
+            safe_region,
+            config_path.display()
+        );
         let output = Command::new("wg-quick")
             .args(["up", config_path.to_str().unwrap()])
             .output()
@@ -234,7 +266,9 @@ impl VpnService {
             let output = Command::new("wg-quick")
                 .args(["down", &active.config_path])
                 .output()
-                .map_err(|e| zbus::fdo::Error::Failed(format!("Failed to execute wg-quick down: {e}")))?;
+                .map_err(|e| {
+                    zbus::fdo::Error::Failed(format!("Failed to execute wg-quick down: {e}"))
+                })?;
 
             if !output.status.success() {
                 let stderr = String::from_utf8_lossy(&output.stderr);
@@ -290,7 +324,11 @@ impl VpnService {
                     status: "connected".to_string(),
                     region: Some(active.region.clone()),
                     interface: Some(active.interface.clone()),
-                    endpoint: if active.endpoint.is_empty() { None } else { Some(active.endpoint.clone()) },
+                    endpoint: if active.endpoint.is_empty() {
+                        None
+                    } else {
+                        Some(active.endpoint.clone())
+                    },
                     connected_at: Some(active.connected_at),
                     bytes_rx,
                     bytes_tx,
@@ -348,4 +386,3 @@ async fn main() -> Result<()> {
 
     Ok(())
 }
-
