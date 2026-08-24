@@ -78,7 +78,7 @@ if (clerk.isPrimaryInstance) {
             [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' https://${fapiHost} https://challenges.cloudflare.com`,
-              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com https://*.sentry.io https://*.clerk.com ws://localhost:5173`,
+              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com https://*.sentry.io https://*.clerk.com ws://localhost:5173 http://localhost:3000`,
               "img-src 'self' https://img.clerk.com data:",
               "style-src 'self' 'unsafe-inline'",
               "worker-src 'self' blob:",
