@@ -1,14 +1,11 @@
 import { app, BrowserWindow, ipcMain, net, protocol, session } from 'electron'
-// import { shell, ipcMain} from 'electron'
 import { createClerkBridge } from '@clerk/electron'
 import { storage } from '@clerk/electron/storage'
 import { pathToFileURL } from 'url'
 import path, { join } from 'path'
-import { /*electronApp, optimizer,*/ is } from '@electron-toolkit/utils'
-import { WgConfig } from '@shurahbil/wireguard-tools-2'
-import { genKeypair } from '@my-vpn/crypto-utils'
+import { is } from '@electron-toolkit/utils'
 import fs from 'fs'
-// import icon from '../../resources/icon.png?asset'
+import { getVpnService } from '../vpn/vpnService'
 
 const clerk = createClerkBridge({
   storage: storage({
@@ -21,108 +18,50 @@ const clerk = createClerkBridge({
   passkeys: true
 })
 
-// protocol.registerSchemesAsPrivileged([
-//   {
-//     scheme: 'my-vpn',
-//     privileges: {
-//       standard: true,
-//       secure: true,
-//       supportFetchAPI: true,
-//       corsEnabled: true
-//     }
-//   }
-// ])
-
 const fapiHost = 'nearby-jawfish-86.clerk.accounts.dev'
-type CreatePeerResponse = {
-  message: string
-  peer: {
-    id: string
-    publicKey: string
-    allocatedIp: string
-    status: string
-    createdAt: string
-  }
-  endpoint: string
-  serverPublicKey: string
-  allowedIps: string[]
-  clientConfig: string
-}
 
 if (clerk.isPrimaryInstance) {
   app.whenReady().then(async () => {
     const CLIENT_CONFIG_DIR = path.join(process.cwd(), 'configs')
-    const CLIENT_CONFIG_PATH = path.join(CLIENT_CONFIG_DIR, 'wg0.conf')
 
     if (!fs.existsSync(CLIENT_CONFIG_DIR)) {
       fs.mkdirSync(CLIENT_CONFIG_DIR)
     }
 
-    // ! vpn connect function
-    ipcMain.handle('vpn:connect', async (_, { regionId, token }) => {
-      const wgConfig = new WgConfig({
-        filePath: CLIENT_CONFIG_PATH
-      })
-
-      try {
-        await wgConfig.generateKeys()
-        console.log('keys generated')
-      } catch {
-        // todo yet to be tested
-        console.log('key generation failed //fallback')
-        const pair = await genKeypair()
-        wgConfig.wgInterface.privateKey = pair.privateKey
-        wgConfig.publicKey = pair.publicKey
-      }
-      console.log('wg config created here it is:', wgConfig)
-      await wgConfig.writeToFile()
-
-      // todo: make request to web api for connection
-      try {
-        const response = await fetch('http:localhost:3000/api/vpn/peer/create', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            publicKey: wgConfig.publicKey
-          })
-        })
-        if (!response.ok) {
-          throw new Error(`Peer provisioning failed: ${response.status}`)
-        }
-        const body = await response.json()
-        const createPeerResponse: CreatePeerResponse = body.data
-        console.log('createPeerResponse:', createPeerResponse)
-        console.log('here is allowedIps ')
-
-        // todo create peer
-        wgConfig.wgInterface.address = [createPeerResponse.allowedIps[0]]
-        console.log('---------------------------------------- get to this line')
-        wgConfig.wgInterface.dns = ['10.10.1.1']
-
-        wgConfig.addPeer({
-          allowedIps: ['0.0.0.0/0', '::/0'],
-          publicKey: createPeerResponse.serverPublicKey,
-          endpoint: createPeerResponse.endpoint
-        })
-
-        await wgConfig.writeToFile()
-      } catch (error) {
-        console.error('Peer provisioning failed', error)
-        throw error
-      }
-      console.log('vpn connect request came in and region requested is:', regionId)
+    // VPN Service IPC Handlers
+    ipcMain.handle('vpn:storeConfig', async (_, params) => {
+      const vpnService = await getVpnService()
+      await vpnService.storeConfig(params)
+      return { success: true }
     })
-    // // vpn connect function ending
-    // ! vpn connect function ending
+
+    ipcMain.handle('vpn:connect', async (_, params: { regionId: string; storeParams?: any }) => {
+      const vpnService = await getVpnService()
+      if (params.storeParams) {
+        await vpnService.storeConfig(params.storeParams)
+      }
+      await vpnService.connect(params.regionId)
+      return { success: true }
+    })
 
     ipcMain.handle('vpn:disconnect', async () => {
-      console.log('vpn disconnect')
+      const vpnService = await getVpnService()
+      await vpnService.disconnect()
+      return { success: true }
     })
+
+    ipcMain.handle('vpn:status', async () => {
+      const vpnService = await getVpnService()
+      return await vpnService.getStatus()
+    })
+
+    ipcMain.handle('vpn:checkService', async () => {
+      const vpnService = await getVpnService()
+      return await vpnService.isAvailable()
+    })
+
     ipcMain.handle('ping', () => {
-      console.log('pong')
+      return 'pong'
     })
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       // console.log(
@@ -139,7 +78,7 @@ if (clerk.isPrimaryInstance) {
             [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' https://${fapiHost} https://challenges.cloudflare.com`,
-              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com https://*.sentry.io https://*.clerk.com ws://localhost:5173`,
+              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com https://*.sentry.io https://*.clerk.com ws://localhost:5173 http://localhost:3000`,
               "img-src 'self' https://img.clerk.com data:",
               "style-src 'self' 'unsafe-inline'",
               "worker-src 'self' blob:",

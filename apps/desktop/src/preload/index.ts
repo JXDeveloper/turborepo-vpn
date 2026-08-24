@@ -4,23 +4,40 @@ import { exposeClerkBridge } from '@clerk/electron/preload'
 
 exposeClerkBridge({ passkeys: true })
 
-// Custom APIs for renderer
 const api = {}
-type ConnectParams = {
+
+import type { StoreConfigParams, VpnStatus } from '../vpn/vpnConfig'
+
+export type { StoreConfigParams, VpnStatus }
+
+export interface ConnectParams {
   regionId: string
-  token: string
+  storeParams?: StoreConfigParams
 }
+
 export interface Vpn {
-  connect(connectParams: ConnectParams): Promise<void>
-  disconnect(): Promise<void>
+  connect(params: ConnectParams): Promise<{ success: boolean }>
+  disconnect(): Promise<{ success: boolean }>
+  getStatus(): Promise<VpnStatus>
+  storeConfig(params: StoreConfigParams): Promise<{ success: boolean }>
+  checkService(): Promise<boolean>
 }
 
 export const vpn: Vpn = {
-  async connect(connectParams: ConnectParams) {
-    return ipcRenderer.invoke('vpn:connect', connectParams)
+  async connect(params: ConnectParams) {
+    return ipcRenderer.invoke('vpn:connect', params)
   },
   async disconnect() {
     return ipcRenderer.invoke('vpn:disconnect')
+  },
+  async getStatus() {
+    return ipcRenderer.invoke('vpn:status')
+  },
+  async storeConfig(params: StoreConfigParams) {
+    return ipcRenderer.invoke('vpn:storeConfig', params)
+  },
+  async checkService() {
+    return ipcRenderer.invoke('vpn:checkService')
   }
 }
 

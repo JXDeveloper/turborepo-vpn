@@ -16,11 +16,12 @@ import {
   type WebApiClient,
   type WebApiError
 } from './lib/api'
+import type { VpnStatus } from './../../preload/index'
 
-type ViewId = 'overview' | 'peers' | 'tunnel'
+type ViewId = 'overview' | 'client' | 'peers' | 'tunnel'
 
 function App(): React.JSX.Element {
-  const [view, setView] = useState<ViewId>('overview')
+  const [view, setView] = useState<ViewId>('client')
   const [ready, setReady] = useState(false)
   const { getToken, isLoaded, isSignedIn } = useAuth()
   const apiBaseUrl = resolveWebApiBaseUrl()
@@ -89,11 +90,6 @@ function LandingScreen(): React.JSX.Element {
           </div>
         </div>
         <div className="auth-actions">
-          {/* <SignInButton>
-            <button type="button" className="ghost-button">
-              Sign in
-            </button>
-          </SignInButton> */}
           <Show when="signed-out">
             <SignIn />
           </Show>
@@ -192,6 +188,12 @@ function DashboardShell({
 
         <nav className="nav-list" aria-label="Primary">
           <NavButton
+            active={activeView === 'client'}
+            onClick={() => onNavigate('client')}
+            label="Client VPN"
+            hint="Connect this device"
+          />
+          <NavButton
             active={activeView === 'overview'}
             onClick={() => onNavigate('overview')}
             label="Overview"
@@ -219,13 +221,15 @@ function DashboardShell({
       <main className="dashboard-main">
         <header className="topbar surface">
           <div>
-            <p className="eyebrow">Operator dashboard</p>
+            <p className="eyebrow">Desktop Client & Operator Dashboard</p>
             <h1 className="page-title">WireGuard control panel</h1>
           </div>
           <div className="topbar-badge">Clerk authenticated</div>
         </header>
 
-        {activeView === 'overview' ? (
+        {activeView === 'client' ? (
+          <ClientView api={api} />
+        ) : activeView === 'overview' ? (
           <OverviewView api={api} />
         ) : activeView === 'peers' ? (
           <PeersView api={api} />
@@ -234,6 +238,262 @@ function DashboardShell({
         )}
       </main>
     </div>
+  )
+}
+
+function ClientView({ api }: { api: WebApiClient }): React.JSX.Element {
+  const [vpnStatus, setVpnStatus] = useState<VpnStatus | null>(null)
+  const [serviceAvailable, setServiceAvailable] = useState<boolean>(true)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [busy, setBusy] = useState<boolean>(false)
+  const [error, setError] = useState<string>('')
+  const [region, setRegion] = useState<string>('us-east')
+
+  const poll = async () => {
+    try {
+      if (window.vpn?.getStatus) {
+        const current = await window.vpn.getStatus()
+        setVpnStatus(current)
+      }
+      if (window.vpn?.checkService) {
+        const available = await window.vpn.checkService()
+        setServiceAvailable(available)
+      }
+    } catch (cause) {
+      console.warn('Status polling warning:', cause)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+
+    async function init() {
+      setLoading(true)
+      await poll()
+      if (!cancelled) {
+        setLoading(false)
+      }
+    }
+
+    void init()
+    const timer = setInterval(() => {
+      void poll()
+    }, 2000)
+
+    return () => {
+      cancelled = true
+      clearInterval(timer)
+    }
+  }, [])
+
+  const handleConnect = async () => {
+    setBusy(true)
+    setError('')
+
+    try {
+      // Step 1: Provision client peer keys via Web API
+      const created = await api.requestPeerConfig()
+
+      // Extract client private key from the assembled config or payload
+      const match = created.clientConfig.match(/PrivateKey\s*=\s*(.+)/)
+      const privateKey = match ? match[1].trim() : ''
+
+      // Step 2: Store config and connect via Linux D-Bus native agent
+      await window.vpn.connect({
+        regionId: region,
+        storeParams: {
+          region,
+          privateKey,
+          serverPublicKey: created.peer.publicKey,
+          endpoint: created.endpoint,
+          allowedIps: ['0.0.0.0/0', '::/0']
+        }
+      })
+
+      await poll()
+    } catch (cause) {
+      setError(readError(cause, 'Unable to connect to VPN.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const handleDisconnect = async () => {
+    setBusy(true)
+    setError('')
+
+    try {
+      await window.vpn.disconnect()
+      await poll()
+    } catch (cause) {
+      setError(readError(cause, 'Unable to disconnect VPN.'))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const isConnected = vpnStatus?.status === 'connected'
+
+  return (
+    <section className="stack">
+      <div className="page-heading">
+        <div>
+          <p className="eyebrow">Local client connection</p>
+          <h2 className="page-subtitle">Client VPN</h2>
+        </div>
+        <button
+          type="button"
+          className="secondary-button"
+          onClick={() => void poll()}
+          disabled={loading || busy}
+        >
+          {busy ? 'Working…' : 'Refresh status'}
+        </button>
+      </div>
+
+      {error ? <ErrorBanner message={error} /> : null}
+
+      {!serviceAvailable ? (
+        <article className="surface card" style={{ borderColor: 'var(--amber-8, #f59e0b)' }}>
+          <p className="eyebrow" style={{ color: 'var(--amber-10, #d97706)' }}>
+            Native Service Inactive
+          </p>
+          <h3 className="section-title">Linux System D-Bus Daemon Not Detected</h3>
+          <p className="card-copy">
+            The native agent (<code>com.mycompany.vpn.service</code>) is not running on the system
+            bus. If you are developing locally, fallback simulator mode is active. In production,
+            start the service using:
+          </p>
+          <pre
+            className="mono"
+            style={{
+              padding: '0.75rem',
+              borderRadius: '4px',
+              background: 'rgba(0,0,0,0.3)',
+              margin: '0.5rem 0'
+            }}
+          >
+            sudo systemctl start com.mycompany.vpn.service
+          </pre>
+        </article>
+      ) : null}
+
+      <div className="metric-grid">
+        <MetricCard
+          label="Client Status"
+          value={loading ? 'Loading…' : isConnected ? 'Connected' : 'Disconnected'}
+          tone={isConnected ? 'success' : 'default'}
+        />
+        <MetricCard
+          label="Active Region"
+          value={vpnStatus?.region ? vpnStatus.region.toUpperCase() : 'None'}
+        />
+        <MetricCard label="Interface" value={vpnStatus?.interface ?? '—'} />
+      </div>
+
+      <article className="surface card">
+        <div className="hero-card-header">
+          <div>
+            <p className="eyebrow">Tunnel Control</p>
+            <h3 className="section-title">
+              {isConnected ? `Connected to ${vpnStatus?.region ?? region}` : 'Ready to Connect'}
+            </h3>
+          </div>
+          <span className={isConnected ? 'status-pill success' : 'status-pill'}>
+            {isConnected ? 'Active Tunnel' : 'Idle'}
+          </span>
+        </div>
+
+        <div className="config-grid" style={{ margin: '1.5rem 0' }}>
+          <div>
+            <label className="field-label" htmlFor="vpn-region-select">
+              Target Region
+            </label>
+            <select
+              id="vpn-region-select"
+              value={region}
+              onChange={(e) => setRegion(e.target.value)}
+              disabled={isConnected || busy}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.8rem',
+                borderRadius: '6px',
+                background: 'rgba(255, 255, 255, 0.05)',
+                color: 'inherit',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                marginTop: '0.3rem'
+              }}
+            >
+              <option value="us-east">US East (N. Virginia)</option>
+              <option value="us-west">US West (Oregon)</option>
+              <option value="eu-central">Europe (Frankfurt)</option>
+              <option value="ap-south">Asia Pacific (Mumbai)</option>
+            </select>
+          </div>
+          <div>
+            <p className="field-label">Connected Duration</p>
+            <p className="mono wrap" style={{ marginTop: '0.5rem', fontSize: '1.1rem' }}>
+              {formatDuration(vpnStatus?.connectedAt)}
+            </p>
+          </div>
+        </div>
+
+        <div className="metric-detail-grid" style={{ marginBottom: '1.5rem' }}>
+          <DetailCard label="Downloaded (Rx)" value={formatBytes(vpnStatus?.bytesRx)} />
+          <DetailCard label="Uploaded (Tx)" value={formatBytes(vpnStatus?.bytesTx)} />
+          <DetailCard
+            label="Gateway Endpoint"
+            value={vpnStatus?.endpoint ?? '198.51.100.1:51820'}
+          />
+          <DetailCard
+            label="Latest Handshake"
+            value={
+              vpnStatus?.latestHandshake
+                ? `${Math.max(0, Math.floor(Date.now() / 1000) - vpnStatus.latestHandshake)}s ago`
+                : '—'
+            }
+          />
+        </div>
+
+        <div className="actions-row">
+          {!isConnected ? (
+            <button
+              type="button"
+              className="primary-button large"
+              onClick={handleConnect}
+              disabled={busy}
+            >
+              {busy ? 'Establishing WireGuard Tunnel…' : `Connect to ${region.toUpperCase()}`}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="danger-button large"
+              onClick={handleDisconnect}
+              disabled={busy}
+            >
+              {busy ? 'Disconnecting…' : 'Disconnect VPN'}
+            </button>
+          )}
+        </div>
+      </article>
+
+      <article className="surface card">
+        <h3 className="section-title">Linux System Integration Details</h3>
+        <dl className="detail-list compact">
+          <DetailRow label="D-Bus Bus Name" value="com.mycompany.Vpn" />
+          <DetailRow label="D-Bus Object Path" value="/com/mycompany/Vpn" />
+          <DetailRow
+            label="Polkit Policy Action"
+            value="com.mycompany.vpn.connect (Active Local Session)"
+          />
+          <DetailRow
+            label="Config Storage Path"
+            value={`/etc/mycompany-vpn/configs/${region}.conf`}
+          />
+        </dl>
+      </article>
+    </section>
   )
 }
 
@@ -766,6 +1026,25 @@ function isWebApiError(value: unknown): value is WebApiError {
     'message' in value &&
     typeof (value as { message?: unknown }).message === 'string'
   )
+}
+
+function formatBytes(bytes?: number): string {
+  if (bytes == null || isNaN(bytes) || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+function formatDuration(connectedAt?: number): string {
+  if (!connectedAt) return '—'
+  const now = Math.floor(Date.now() / 1000)
+  const diff = Math.max(0, now - connectedAt)
+  const mins = Math.floor(diff / 60)
+  const secs = diff % 60
+  const hrs = Math.floor(mins / 60)
+  if (hrs > 0) return `${hrs}h ${mins % 60}m`
+  return `${mins}m ${secs}s`
 }
 
 function formatDate(value: string): string {

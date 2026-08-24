@@ -1,0 +1,65 @@
+#!/bin/bash
+set -e
+
+# Stop and disable the native systemd VPN service if systemd is active
+if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+    if systemctl is-active --quiet com.mycompany.vpn.service 2>/dev/null; then
+        echo "Stopping com.mycompany.vpn.service..."
+        systemctl stop com.mycompany.vpn.service || true
+    fi
+
+    if systemctl is-enabled --quiet com.mycompany.vpn.service 2>/dev/null; then
+        echo "Disabling com.mycompany.vpn.service..."
+        systemctl disable com.mycompany.vpn.service || true
+    fi
+fi
+
+# Remove update-alternatives if installed
+if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ]; then
+    if command -v update-alternatives >/dev/null 2>&1; then
+        update-alternatives --remove 'metro-vpn' '/opt/metro-vpn/metro-vpn' || true
+    fi
+    rm -f '/usr/bin/metro-vpn' || true
+fi
+
+# Update databases
+if hash update-mime-database 2>/dev/null; then
+    update-mime-database /usr/share/mime || true
+fi
+
+if hash update-desktop-database 2>/dev/null; then
+    update-desktop-database /usr/share/applications || true
+fi
+
+# Reload systemd
+if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+    systemctl daemon-reload || true
+fi
+
+# Purge configuration files, services, and policies
+if [ "$1" = "purge" ]; then
+    echo "Purging MyCompany VPN files and configurations..."
+
+    # Remove native binaries and directories
+    rm -rf '/usr/lib/mycompany' || true
+
+    # Remove systemd service
+    rm -f '/usr/lib/systemd/system/com.mycompany.vpn.service' || true
+
+    # Remove D-Bus config
+    rm -f '/etc/dbus-1/system.d/com.mycompany.vpn.conf' || true
+
+    # Remove Polkit policy
+    rm -f '/usr/share/polkit-1/actions/com.mycompany.vpn.policy' || true
+
+    # Remove AppArmor profile
+    rm -f '/etc/apparmor.d/metro-vpn' || true
+
+    # Remove WireGuard config files and keys stored by the daemon
+    rm -rf '/etc/mycompany-vpn' || true
+
+    # Reload systemd configuration again
+    if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+        systemctl daemon-reload || true
+    fi
+fi

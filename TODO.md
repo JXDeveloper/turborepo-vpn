@@ -1,0 +1,11 @@
+- [ ] create Debian package that installs and uninstalls cleanly
+  - [x] write electron-builder configs that package the app, native service, configs and required files
+  - [x] create install scripts that place files in the correct system paths
+  - [x] create uninstall scripts that place files in the correct system paths
+  - [x] create polkit policy
+  - [x] write native service (Rust/C++) that manages low-level VPN connection and config operations
+  - [x] write systemd service that runs the native service
+  - [x] write D-Bus policy/config
+  - [x] expose VPN operations through D-Bus (connect, disconnect, status, config)
+  - [x] write Electron implementation that consumes the native VPN service
+  - [ ] test complete install → run → connect → disconnect → uninstall flow
