@@ -1,6 +1,3 @@
-use std::fs;
-use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
 use zbus::Connection;
 use zbus::connection::Builder;
 use zbus::fdo::Result;
@@ -11,6 +8,10 @@ use zbus::zvariant::OwnedValue;
 use zbus::zvariant::Value;
 
 use std::collections::HashMap;
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
+use std::process::Command;
 
 struct VpnService;
 
@@ -87,6 +88,21 @@ impl VpnService {
         let result = polkit
             .check_authorization(subject, action_id, details, flags, cancellation_id)
             .await?;
+
+        let (authorized, _, _) = result;
+
+        if authorized {
+            let status = Command::new("wg-quick")
+                .args(["up", "/etc/mycompany-vpn/configs/us-east.conf"])
+                .status()
+                .map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
+
+            if !status.success() {
+                return Err(zbus::fdo::Error::Failed(format!(
+                    "wg-quick failed with status: {status}"
+                )));
+            }
+        }
 
         println!("CheckAuthorization result: {:?}", result);
 
