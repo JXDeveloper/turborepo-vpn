@@ -12,7 +12,7 @@ function Index() {
     try {
       const token = await getToken()
       if (token == null) throw Error('Not Signed In')
-      await window.vpn.connect({ regionId, token })
+      await window.vpn.connect({ regionId })
     } catch {
       // todo implement visual signal for user in app
       console.log('You may be not authored to do the request')

@@ -1,0 +1,23 @@
+#!/bin/bash
+set -e
+
+# Stop and disable the native systemd VPN service if systemd is active
+if command -v systemctl >/dev/null 2>&1 && [ -d /run/systemd/system ]; then
+    if systemctl is-active --quiet com.mycompany.vpn.service 2>/dev/null; then
+        echo "Stopping com.mycompany.vpn.service..."
+        systemctl stop com.mycompany.vpn.service || true
+    fi
+
+    if systemctl is-enabled --quiet com.mycompany.vpn.service 2>/dev/null; then
+        echo "Disabling com.mycompany.vpn.service..."
+        systemctl disable com.mycompany.vpn.service || true
+    fi
+fi
+
+# Remove update-alternatives if installed
+if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ]; then
+    if command -v update-alternatives >/dev/null 2>&1; then
+        update-alternatives --remove 'metro-vpn' '/opt/metro-vpn/metro-vpn' || true
+    fi
+    rm -f '/usr/bin/metro-vpn' || true
+fi

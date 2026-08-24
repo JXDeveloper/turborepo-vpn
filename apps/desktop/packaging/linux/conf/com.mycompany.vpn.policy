@@ -4,24 +4,27 @@
   "http://www.freedesktop.org/standards/PolicyKit/1.0/policyconfig.dtd">
 
 <policyconfig>
+    <vendor>MyCompany VPN</vendor>
+    <vendor_url>https://example.com</vendor_url>
+
     <action id="com.mycompany.vpn.connect">
         <description>Connect to MyCompany VPN</description>
         <message>Authentication is required to connect to the VPN</message>
-
         <defaults>
             <allow_any>no</allow_any>
             <allow_inactive>no</allow_inactive>
-            <allow_active>auth_admin</allow_active>
+            <allow_active>yes</allow_active>
         </defaults>
     </action>
-    <action id="com.mycompany.vpn.disConnect">
-        <description>Connect to MyCompany VPN</description>
-        <message>Authentication is required to disConnect from the VPN</message>
 
+    <action id="com.mycompany.vpn.disconnect">
+        <description>Disconnect from MyCompany VPN</description>
+        <message>Authentication is required to disconnect from the VPN</message>
         <defaults>
             <allow_any>no</allow_any>
             <allow_inactive>no</allow_inactive>
-            <allow_active>auth_admin</allow_active>
+            <allow_active>yes</allow_active>
         </defaults>
     </action>
 </policyconfig>
+
