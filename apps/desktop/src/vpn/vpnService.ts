@@ -59,12 +59,12 @@ class DbusVpnService implements VpnService {
 
   async connect(region: string): Promise<void> {
     const iface = await this.getInterface()
-    await iface.connect(region)
+    await iface.Connect(region)
   }
 
   async disconnect(): Promise<void> {
     const iface = await this.getInterface()
-    await iface.disconnect()
+    await iface.Disconnect()
   }
 
   async getStatus(): Promise<VpnStatus> {
@@ -168,4 +168,3 @@ export async function getVpnService(): Promise<VpnService> {
   // In Linux production, return real dbus service so errors are surfaced with instructions
   return dbusService
 }
-
