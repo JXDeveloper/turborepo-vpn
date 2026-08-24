@@ -34,6 +34,7 @@ COPY packages/crypto-utils packages/crypto-utils
 COPY packages/expo-wireguard packages/expo-wireguard
 
 # Build server
+RUN pnpm --filter @my-vpn/crypto-utils build
 RUN pnpm --filter server build
 
 # Server HTTP API
