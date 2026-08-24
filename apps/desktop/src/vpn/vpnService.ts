@@ -47,7 +47,7 @@ class DbusVpnService implements VpnService {
     const dns = params.dns ?? ['1.1.1.1', '8.8.8.8']
     const allowedIps = params.allowedIps ?? ['0.0.0.0/0', '::/0']
 
-    await iface.store_config(
+    await iface.StoreConfig(
       params.region,
       params.privateKey,
       params.serverPublicKey,
@@ -69,7 +69,7 @@ class DbusVpnService implements VpnService {
 
   async getStatus(): Promise<VpnStatus> {
     const iface = await this.getInterface()
-    const raw: string = await iface.get_status()
+    const raw: string = await iface.GetStatus()
     try {
       const parsed = JSON.parse(raw) as {
         status: string
