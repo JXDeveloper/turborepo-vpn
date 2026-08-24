@@ -50,9 +50,10 @@ class DbusVpnService implements VpnService {
     await iface.StoreConfig(
       params.region,
       params.privateKey,
+      dns,
+      params.address ?? '',
       params.serverPublicKey,
       params.endpoint,
-      dns,
       allowedIps
     )
   }

@@ -24,7 +24,7 @@ export interface StoreConfigParams {
   region: string
   privateKey: string
   dns?: string[]
-  Address: String
+  address: String
   serverPublicKey: string
   endpoint: string
   allowedIps?: string[]

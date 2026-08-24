@@ -1,5 +1,6 @@
 import { getToken, Show } from '@clerk/electron/react'
 import { createFileRoute } from '@tanstack/react-router'
+import { genKeypair } from '@my-vpn/crypto-utils'
 // import { MouseEvent } from 'react'
 
 export const Route = createFileRoute('/')({
@@ -9,10 +10,20 @@ export const Route = createFileRoute('/')({
 function Index() {
   async function handleConnect() {
     // const regionId = 'us-east'
+    // TODO: regionId is currently hardcoded to 'us-east' for testing.
+    // Yet to be fixed for automatic region selection.
+    const regionId = 'us-east'
     try {
       const token = await getToken()
       if (token == null) throw Error('Not Signed In')
-      // todo:  make request to control panel for creating peer
+      // todo: 1. create private and public key
+      // todo: 2. complete request to control panel for creating peer
+
+      // 1. Create private and public key
+      const keypair = await genKeypair()
+      console.log(keypair)
+
+      // 2. Complete request to control panel for creating peer
       console.log('gonna make a request')
       let response = await fetch('http://localhost:3000/api/vpn/peer/create', {
         method: 'POST',
@@ -21,28 +32,52 @@ function Index() {
           Authorization: `Bearer ${token}`
         },
         body: JSON.stringify({
-          publicKey: 'blah blah blah'
+          publicKey: keypair.publicKey
         })
       })
-      let data = await response.json()
+      const data = await response.json()
+      const configs = data.configs
 
       console.log(data)
 
-      // todo: get configs and pass them to underlaying native agent
+      // todo: 3. get configs and pass them to underlaying native agent
+      // 3. Get configs and attach the generated private key
+      // 4. Pass the configs to D-Bus service (via storeParams)
+      const storeParams = {
+        region: regionId,
+        privateKey: keypair.privateKey,
+        address: configs.allowedIps[0],
+        serverPublicKey: configs.serverPublicKey,
+        endpoint: configs.endpoint,
+        dns: ['10.10.1.2'],
+        allowedIps: ['0.0.0.0/0', '::/0']
+      }
 
-      // todo: call the connect function in the underlaying native agent
-      // await window.vpn.connect({ regionId })
-    } catch {
+      console.log(storeParams)
+
+      // todo: 4. call the connect function in the underlaying native agent
+      // 5. Call the connect function in the underlying native agent
+      await window.vpn.connect({
+        regionId,
+        storeParams
+      })
+    } catch (err) {
       // todo implement visual signal for user in app
       console.log('You may be not authored to do the request')
+      console.error('Connection failed or unauthorized:', err)
     }
-    await window.vpn.disconnect()
+    // await window.vpn.disconnect()
+  }
+
+  async function handleDisconnect() {
+    window.vpn.disconnect()
   }
   return (
     <div className="p-2">
       <h3>Welcome Home!</h3>
       <Show when="signed-in">
         <button onClick={handleConnect}>Connect to Vpn</button>
+        <button onClick={handleDisconnect}>Disconnect</button>
       </Show>
     </div>
   )

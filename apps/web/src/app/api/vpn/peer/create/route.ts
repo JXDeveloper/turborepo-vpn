@@ -23,9 +23,9 @@ export async function POST(request: Request) {
     let response = {};
     if (body.publicKey) {
       console.log(`public key: ${body.publicKey}`);
-      // response = await signedApiRequest("/peers", "POST", {
-      //   publicKey: body.publicKey,
-      // });
+      response = await signedApiRequest("/peers", "POST", {
+        publicKey: body.publicKey,
+      });
     } else {
       response = {
         error: "no publicKey specified",
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
 
     // Respond with a 200 OK status to acknowledge receipt of the webhook
     return NextResponse.json(
-      { message: "Webhook received successfully", data: response },
+      { message: "Webhook received successfully", configs: response },
       {
         status: 200,
         headers: {

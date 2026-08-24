@@ -120,7 +120,7 @@ impl VpnService {
         region: String,
         private_key: String,
         dns: Vec<String>,
-        Address: String,
+        address: String,
         server_public_key: String,
         endpoint: String,
         allowed_ips: Vec<String>,
@@ -151,7 +151,7 @@ impl VpnService {
             "[Interface]\n\
              PrivateKey = {private_key}\n\
              {dns_line}\n\
-             Address={Address}
+             Address={address}
              [Peer]\n\
              PublicKey = {server_public_key}\n\
              Endpoint = {endpoint}\n\
