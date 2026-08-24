@@ -23,9 +23,10 @@ export interface VpnStatus {
 export interface StoreConfigParams {
   region: string
   privateKey: string
+  dns?: string[]
+  Address: String
   serverPublicKey: string
   endpoint: string
-  dns?: string[]
   allowedIps?: string[]
 }
 
@@ -33,4 +34,3 @@ export interface ConnectParams {
   regionId: string
   token?: string
 }
-
