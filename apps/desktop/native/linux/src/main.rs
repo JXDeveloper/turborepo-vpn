@@ -1,3 +1,6 @@
+use std::fs;
+use std::os::unix::fs::PermissionsExt;
+use std::path::Path;
 use zbus::Connection;
 use zbus::connection::Builder;
 use zbus::fdo::Result;
@@ -22,12 +25,33 @@ impl VpnService {
         dns: Vec<String>,
         allowed_ips: Vec<String>,
     ) -> Result<()> {
-        println!("region: {region}");
-        println!("private_key: {private_key}");
-        println!("server_public_key: {server_public_key}");
-        println!("endpoint: {endpoint}");
-        println!("dns: {dns:?}");
-        println!("allowed_ips: {allowed_ips:?}");
+        let dir = Path::new("/etc/mycompany-vpn/configs");
+
+        // Create directory if it doesn't exist.
+        fs::create_dir_all(dir).map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
+
+        let config = format!(
+            "[Interface]\n\
+         PrivateKey = {private_key}\n\
+         DNS = {}\n\
+         \n\
+         [Peer]\n\
+         PublicKey = {server_public_key}\n\
+         Endpoint = {endpoint}\n\
+         AllowedIPs = {}\n",
+            dns.join(", "),
+            allowed_ips.join(", "),
+        );
+
+        let path = dir.join(format!("{region}.conf"));
+
+        fs::write(&path, config).map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
+
+        // Private key → file readable only by owner.
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o600))
+            .map_err(|e| zbus::fdo::Error::Failed(e.to_string()))?;
+
+        println!("Stored WireGuard config: {}", path.display());
 
         Ok(())
     }
