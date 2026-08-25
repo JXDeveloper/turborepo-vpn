@@ -46,6 +46,8 @@ function Index() {
       const storeParams = {
         region: regionId,
         privateKey: keypair.privateKey,
+        //! i think there is something bad here is hsould not be configs.allowedIps[0] rather it should be
+        //! configs.allowedIps, i think server is not responding with what i want
         address: configs.allowedIps[0],
         serverPublicKey: configs.serverPublicKey,
         endpoint: configs.endpoint,
