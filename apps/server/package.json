@@ -1,5 +1,10 @@
 {
   "name": "server",
+  "files": [
+    "dist/**",
+    "package.json",
+    ".env"
+  ],
   "type": "module",
   "scripts": {
     "dev-not": "tsx --watch --env-file=.env src/index.ts",
