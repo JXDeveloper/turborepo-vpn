@@ -59,13 +59,14 @@ jobs:
         with:
           node-version: 24
           cache: pnpm
-      - name: Prune workspace
-        run: |
-          pnpm turbo prune server
+
       - name: Install dependencies
         working-directory: out/full
         run: |
           pnpm install --frozen-lockfile
+      - name: Prune workspace
+        run: |
+          pnpm turbo prune server
 
       - name: Build exit-node
         working-directory: out/full
