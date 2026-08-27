@@ -61,28 +61,25 @@ jobs:
           cache: pnpm
 
       - name: Install dependencies
-        working-directory: out/full
         run: |
           pnpm install --frozen-lockfile
-      - name: Prune workspace
-        run: |
-          pnpm turbo prune server
+      # - name: Prune workspace
+      #   run: |
+      #     pnpm turbo prune server
 
       - name: Build exit-node
-        working-directory: out/full
         run: |
-          pnpm turbo build --filter=exit-node
+          pnpm turbo build --filter=server
 
 
       - name: Create deployment
-        working-directory: out/full
         run: |
-          rm -rf ../../deploy
+          rm -rf ./deploy
 
           pnpm deploy \
             --filter=server \
             --prod \
-            ../../deploy
+            ./deploy
 
       - name: Inspect deployment
         run: |
