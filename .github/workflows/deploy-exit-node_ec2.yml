@@ -106,7 +106,7 @@ jobs:
           ssh \
             -i ~/.ssh/ec2_key \
             -o StrictHostKeyChecking=no \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
             "echo Connected successfully"
       - name: Upload deployment
         run: |
@@ -114,5 +114,5 @@ jobs:
             -i ~/.ssh/ec2_key \
             -o StrictHostKeyChecking=no \
             exit-node.tar.gz \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/tmp/exit-node-${{ github.sha }}.tar.gz
+            ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }}:/tmp/exit-node-${{ github.sha }}.tar.gz
       
