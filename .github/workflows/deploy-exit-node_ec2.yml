@@ -37,7 +37,7 @@ on:
       - "pnpm-lock.yaml"
       - "pnpm-workspace.yaml"
       - "turbo.json"
-
+  workflow_dispatch:
 permissions:
   contents: read
 
