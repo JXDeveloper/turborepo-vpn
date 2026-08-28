@@ -1,0 +1,714 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>VPN Control Plane and Peer Provisioning Flow &mdash; Dark</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --ink: #ededec;
+      --muted: #97999f;
+      --hairline: #33353b;
+      --panel: #17181c;
+      --paper: #0d0e11;
+      --blue: #6ba2ff;
+      --green: #4fbf85;
+      --amber: #e0a53d;
+      --red: #f0616b;
+      --violet: #a595e8;
+      --shadow: 0 18px 55px rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+        linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), var(--paper);
+      background-size: 34px 34px;
+      color: var(--ink);
+      font-family:
+        ui-sans-serif,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      line-height: 1.48;
+    }
+
+    .shell {
+      width: min(1540px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 38px 0 72px;
+    }
+
+    header {
+      border-bottom: 2px solid var(--ink);
+      padding-bottom: 24px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--blue);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 980px;
+      margin: 8px 0 12px;
+      font-size: clamp(34px, 5vw, 66px);
+      line-height: 0.98;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 26px;
+      line-height: 1.08;
+    }
+
+    h3 {
+      margin: 22px 0 8px;
+      font-size: 17px;
+    }
+
+    p {
+      margin: 0 0 12px;
+    }
+
+    code,
+    .mono {
+      font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+    }
+
+    code {
+      border-radius: 4px;
+      background: #24262b;
+      padding: 1px 4px;
+      font-size: 0.92em;
+    }
+
+    .lede {
+      max-width: 1000px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 18px;
+    }
+
+    .panel {
+      grid-column: span 12;
+      border: 1px solid var(--hairline);
+      border-radius: 10px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      padding: 22px;
+    }
+
+    .half {
+      grid-column: span 6;
+    }
+
+    .third {
+      grid-column: span 4;
+    }
+
+    .callout {
+      border-left: 5px solid var(--blue);
+      background: rgba(107, 162, 255, 0.1);
+      padding: 14px 16px;
+      margin-top: 14px;
+    }
+
+    .callout.warning {
+      border-left-color: var(--amber);
+      background: rgba(224, 165, 61, 0.12);
+    }
+
+    .callout.good {
+      border-left-color: var(--green);
+      background: rgba(79, 191, 133, 0.1);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .badge {
+      border: 1px solid var(--hairline);
+      border-radius: 999px;
+      background: #1c1e23;
+      padding: 5px 9px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge.user {
+      border-color: rgba(107, 162, 255, 0.35);
+      color: var(--blue);
+    }
+
+    .badge.env {
+      border-color: rgba(79, 191, 133, 0.35);
+      color: var(--green);
+    }
+
+    .badge.local {
+      border-color: rgba(224, 165, 61, 0.4);
+      color: var(--amber);
+    }
+
+    .badge.violet {
+      border-color: rgba(165, 149, 232, 0.4);
+      color: var(--violet);
+    }
+
+    .diagram {
+      overflow-x: auto;
+      margin: 12px 0 0;
+      border: 1px solid var(--hairline);
+      border-radius: 8px;
+      background: #101114;
+      color: var(--ink);
+      padding: 18px;
+    }
+
+    .diagram svg {
+      display: block;
+      width: auto !important;
+      min-width: 100%;
+      max-width: none !important;
+      height: auto;
+      margin: 0 auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid var(--hairline);
+      padding: 11px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    ul {
+      margin: 8px 0 0;
+      padding-left: 20px;
+    }
+
+    li+li {
+      margin-top: 6px;
+    }
+
+    .flow {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .step {
+      border: 1px solid var(--hairline);
+      border-left: 5px solid var(--green);
+      border-radius: 8px;
+      background: #17181c;
+      padding: 12px 14px;
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 3px;
+    }
+
+    .step.amber {
+      border-left-color: var(--amber);
+    }
+
+    .step.red {
+      border-left-color: var(--red);
+    }
+
+    .source-list a {
+      color: var(--blue);
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+
+      .half,
+      .third {
+        grid-column: span 12;
+      }
+
+      .shell {
+        width: min(100vw - 24px, 1540px);
+        padding-top: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="shell">
+    <header>
+      <div class="eyebrow">System design draft</div>
+      <h1>VPN Control Plane and Managed Peer Provisioning Flow</h1>
+      <p class="lede">
+        The Control Panel links a Clerk-authenticated subscriber to a WireGuard peer running on an
+        Exit Node. It owns the durable record of who a peer belongs to and whether their
+        subscription entitles them to service; the Exit Node remains the sole authority over the
+        live WireGuard interface. Neon (Postgres) accessed through Drizzle ORM is the system of
+        record for users, subscriptions, exit nodes, and peers.
+      </p>
+      <div class="badge-row">
+        <span class="badge user">Browser -> Control Panel: Clerk session</span>
+        <span class="badge violet">Control Panel -> Neon: Drizzle queries</span>
+        <span class="badge env">Control Panel -> Exit Node: service-to-service API key</span>
+        <span class="badge local">Peer -> Exit Node: WireGuard handshake (UDP)</span>
+      </div>
+    </header>
+
+    <section class="grid" aria-label="Entities">
+      <article class="panel half">
+        <h2>Entities</h2>
+        <p>Five entities compose the system. Ownership is split so that no single component can
+          both grant service and collect payment.</p>
+        <ul>
+          <li><strong>User</strong> &mdash; identity and session, managed entirely by Clerk.</li>
+          <li><strong>Subscription</strong> &mdash; billing state and plan entitlement, managed by
+            Clerk (or a billing provider behind it), mirrored into Neon for fast local checks.</li>
+          <li><strong>Control Panel</strong> &mdash; the application server. Orchestrates peer
+            creation, owns the Neon database via Drizzle, and is the only component with
+            credentials to call Exit Nodes.</li>
+          <li><strong>Exit Node</strong> &mdash; a WireGuard gateway host. Exposes a small internal
+            HTTP API for peer lifecycle operations and nothing else public-facing except the
+            WireGuard UDP port.</li>
+          <li><strong>Peer</strong> &mdash; the client device's tunnel identity: a WireGuard
+            keypair, an assigned tunnel IP, and the routing/DNS parameters it needs to connect.</li>
+        </ul>
+      </article>
+
+      <article class="panel half">
+        <h2>Trust Boundaries</h2>
+        <p>
+          A signed-in user is not, by itself, a provisioned peer. Reaching an active tunnel
+          requires all of the following:
+        </p>
+        <ul>
+          <li>a Clerk-authenticated session for a real user;</li>
+          <li>a subscription row in Neon whose status is active as of the request;</li>
+          <li>a peer row owned by that user, created by the Control Panel;</li>
+          <li>the corresponding peer entry actually present in the Exit Node's live WireGuard
+            configuration; and</li>
+          <li>possession of the private key and config, which only ever leaves the Control Panel
+            once, at creation time.</li>
+        </ul>
+        <div class="callout">
+          The Exit Node never talks to Clerk or Neon directly. It only accepts authenticated calls
+          from the Control Panel and only ever learns a public key, never a user identity.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" aria-label="Topology">
+      <h2>Current Topology</h2>
+      <pre class="diagram mermaid">
+flowchart LR
+  Browser["Browser / WireGuard app"]
+  Clerk["Clerk<br/>identity + subscriptions"]
+
+  subgraph CP["Control Panel"]
+    App["Next.js app server"]
+    Drizzle["Drizzle ORM client"]
+  end
+
+  Neon["Neon Postgres<br/>users, subscriptions, exit_nodes, peers"]
+
+  subgraph EN["Exit Node (per region)"]
+    API["Internal peer API"]
+    WG["wg0 interface"]
+  end
+
+  Browser -->|"Clerk session"| App
+  App --> Clerk
+  App --> Drizzle --> Neon
+  App -->|"service API key: create/revoke/list peer"| API
+  API --> WG
+  Browser -.->|"WireGuard handshake, UDP 51820"| WG
+  Clerk -->|"subscription.updated / subscription.deleted webhook"| App
+        </pre>
+    </section>
+
+    <section class="panel" aria-label="Data model">
+      <h2>Data Model (Drizzle / Neon)</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Table</th>
+            <th>Key columns</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>users</code></td>
+            <td><code>id</code>, <code>clerk_user_id</code>, <code>email</code>,
+              <code>created_at</code>
+            </td>
+            <td>Mirrors just enough Clerk identity to join against locally; Clerk remains the
+              source of truth for auth.</td>
+          </tr>
+          <tr>
+            <td><code>subscriptions</code></td>
+            <td><code>id</code>, <code>user_id</code>, <code>clerk_subscription_id</code>,
+              <code>plan</code>, <code>status</code>, <code>current_period_end</code>,
+              <code>revoked_at</code>
+            </td>
+            <td><code>status</code> is the fast local check (<code>active</code>,
+              <code>past_due</code>, <code>revoked</code>) kept in sync by the Clerk webhook.
+            </td>
+          </tr>
+          <tr>
+            <td><code>exit_nodes</code></td>
+            <td><code>id</code>, <code>region</code>, <code>hostname</code>,
+              <code>api_base_url</code>, <code>public_key</code>, <code>capacity</code>
+            </td>
+            <td>One row per WireGuard gateway host; the Control Panel picks a node when a peer is
+              created, e.g. by region or current load.</td>
+          </tr>
+          <tr>
+            <td><code>peers</code></td>
+            <td><code>id</code>, <code>user_id</code>, <code>exit_node_id</code>,
+              <code>public_key</code>, <code>private_key_encrypted</code>,
+              <code>assigned_ip</code>, <code>status</code>, <code>created_at</code>,
+              <code>revoked_at</code>
+            </td>
+            <td>The private key is generated once by the Control Panel, encrypted at rest, and
+              only ever decrypted to re-render a config or QR code for its owner.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout warning">
+        Storing the private key at all is a deliberate trade-off for convenience (letting a user
+        re-open their QR code later without re-provisioning). If that risk is unacceptable, the
+        Control Panel can instead show the config once and store only the public key, forcing
+        re-creation of the peer if the user loses their device config.
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Core flows">
+      <article class="panel">
+        <h2>Flow 1: First-Time User &mdash; Sign-Up Through First Peer</h2>
+        <pre class="diagram mermaid">
+sequenceDiagram
+  participant U as New user
+  participant B as Browser
+  participant Clerk as Clerk
+  participant CP as Control Panel
+  participant DB as Neon (Drizzle)
+  participant EN as Exit Node
+
+  U->>B: Visit application
+  B->>Clerk: Sign in / sign up
+  Clerk-->>B: Session established
+  B->>CP: Land on landing page
+  U->>B: Click "View pricing"
+  B->>Clerk: Select plan and complete checkout
+  Clerk-->>CP: subscription.created webhook
+  CP->>DB: Upsert subscriptions row (status = active)
+  Clerk-->>B: Redirect to home
+  U->>B: Click "Dashboard"
+  B->>CP: GET /dashboard/home
+  CP->>DB: Load user + subscription status
+  CP-->>B: Render dashboard with "Create peer" button
+  U->>B: Click "Create peer"
+  B->>CP: POST /api/peers
+  CP->>CP: Generate WireGuard keypair, pick exit node
+  CP->>DB: Insert peers row (status = pending)
+  DB-->>CP: Row committed
+  CP->>EN: POST /peers (public_key, assigned_ip candidate)
+  EN->>EN: Add peer to wg0, allocate tunnel IP
+  EN-->>CP: Peer config fields (server pubkey, endpoint, allowed IPs)
+  CP->>DB: Update peers row (status = active, assigned_ip)
+  CP-->>B: Full client config + QR code
+  U->>B: Scan QR in WireGuard app
+  B-->>EN: WireGuard handshake, tunnel established
+          </pre>
+        <div class="callout good">
+          The Neon row is written and committed <em>before</em> the Exit Node is asked to create
+          anything, so a crash between steps leaves an orphaned "pending" database row rather than
+          an orphaned live peer with no record of its owner.
+        </div>
+        <p>
+          If the Exit Node call fails or times out, the Control Panel should retry idempotently
+          (keyed on the peer id) rather than generating a second keypair, and should surface a
+          clear retry state on the dashboard instead of a half-provisioned peer.
+        </p>
+      </article>
+
+      <article class="panel">
+        <h2>Flow 2: Returning User With Subscription Remaining</h2>
+        <pre class="diagram mermaid">
+sequenceDiagram
+  participant U as Returning user
+  participant B as Browser
+  participant Clerk as Clerk
+  participant CP as Control Panel
+  participant DB as Neon (Drizzle)
+  participant EN as Exit Node
+
+  U->>B: Sign in
+  B->>Clerk: Authenticate
+  Clerk-->>B: Session established
+  B->>CP: GET /dashboard/home
+  CP->>Clerk: Verify session
+  CP->>DB: Read subscription status for user
+  alt status = active
+    CP->>DB: Load existing peers for user
+    CP->>EN: GET /peers/:id (optional live status check)
+    EN-->>CP: Peer status, last handshake time
+    CP-->>B: Render existing peer(s), config, and QR on demand
+  end
+          </pre>
+        <p>
+          The QR code and config are regenerated from the stored, encrypted private key rather
+          than re-provisioned, so re-scanning does not create a second peer or invalidate the
+          first one on the Exit Node.
+        </p>
+      </article>
+
+      <article class="panel">
+        <h2>Flow 3: Returning User Without Subscription Remaining</h2>
+        <div class="flow">
+          <div class="step amber">
+            <strong>Subscription check fails</strong>
+            Control Panel reads <code>subscriptions.status</code> as <code>past_due</code> or
+            <code>revoked</code> for the user.
+          </div>
+          <div class="step amber">
+            <strong>Dashboard shows entitlement message</strong>
+            The dashboard renders "You have no subscription left" with a link back to the pricing
+            page, instead of the peer list or create-peer button.
+          </div>
+          <div class="step amber">
+            <strong>No Exit Node call is made</strong>
+            The Control Panel never queries or contacts the Exit Node on this path; an
+            unentitled user's request stops entirely at the database check.
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>Flow 4: Subscription Revocation</h2>
+        <pre class="diagram mermaid">
+sequenceDiagram
+  participant Clerk as Clerk
+  participant CP as Control Panel
+  participant DB as Neon (Drizzle)
+  participant EN as Exit Node
+
+  Clerk->>CP: POST /webhooks/clerk (subscription.deleted, signed)
+  CP->>CP: Verify webhook signature
+  CP->>DB: Set subscriptions.status = revoked, revoked_at = now()
+  CP->>DB: Load all active peers for the affected user
+  loop for each active peer
+    CP->>EN: POST /peers/:id/revoke
+    EN->>EN: Remove peer from wg0 immediately
+    EN-->>CP: Ack
+    CP->>DB: Set peers.status = revoked, revoked_at = now()
+  end
+  CP-->>Clerk: 200 OK
+          </pre>
+        <div class="callout warning">
+          The webhook handler must verify the Clerk signature before trusting the payload, and the
+          revoke loop should be retried on failure so a temporarily unreachable Exit Node cannot
+          leave a cancelled subscriber connected indefinitely.
+        </div>
+      </article>
+    </section>
+
+    <section class="panel" aria-label="Control Panel API">
+      <h2>Control Panel HTTP API</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Authentication</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>GET /dashboard/home</code></td>
+            <td>Clerk session</td>
+            <td>Load subscription status and existing peers for the signed-in user.</td>
+          </tr>
+          <tr>
+            <td><code>POST /api/peers</code></td>
+            <td>Clerk session, active subscription required</td>
+            <td>Generate a keypair, persist the peer, and provision it on the selected Exit
+              Node.</td>
+          </tr>
+          <tr>
+            <td><code>GET /api/peers/:id/config</code></td>
+            <td>Clerk session, peer owned by requester</td>
+            <td>Re-render the stored config and QR code without contacting the Exit Node.</td>
+          </tr>
+          <tr>
+            <td><code>POST /webhooks/clerk</code></td>
+            <td>Clerk webhook signing secret</td>
+            <td>Receive subscription lifecycle events and drive local status plus Exit Node
+              revocation.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="panel" aria-label="Exit Node API">
+      <h2>Exit Node Internal API</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Endpoint</th>
+            <th>Authentication</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>POST /peers</code></td>
+            <td>Control Panel service API key</td>
+            <td>Add a peer to the wg0 interface, allocate a tunnel IP, return server-side config
+              fields.</td>
+          </tr>
+          <tr>
+            <td><code>GET /peers/:id</code></td>
+            <td>Control Panel service API key</td>
+            <td>Return live peer status, including last handshake time and bytes
+              transferred.</td>
+          </tr>
+          <tr>
+            <td><code>POST /peers/:id/revoke</code></td>
+            <td>Control Panel service API key</td>
+            <td>Remove a peer from the wg0 interface immediately, halting service.</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="callout">
+        The Exit Node API should never be reachable from the public internet; it is called only
+        by the Control Panel over a private network or an allow-listed IP plus API key.
+      </div>
+    </section>
+
+    <section class="panel" aria-label="Implementation checklist">
+      <h2>Implementation Checklist</h2>
+      <ul>
+        <li>Verify the Clerk webhook signature on every incoming event before writing to
+          Neon.</li>
+        <li>Write the peer row to Neon before calling the Exit Node, and make the Exit Node call
+          idempotent on peer id so retries cannot create duplicate peers.</li>
+        <li>Encrypt the stored private key at rest; decrypt only in-memory when re-rendering a
+          config or QR code for its verified owner.</li>
+        <li>Gate <code>POST /api/peers</code> on a fresh subscription status check, not a cached
+          session claim, so a revoked user cannot create a new peer.</li>
+        <li>Make subscription revocation call <code>revoke_peer/:id</code> for every active peer
+          owned by the user, and retry on Exit Node failures rather than dropping the event.</li>
+        <li>Keep the Exit Node's internal API off the public internet; restrict it to the Control
+          Panel's network or IP range plus a service API key.</li>
+        <li>Track peer <code>status</code> (<code>pending</code>, <code>active</code>,
+          <code>revoked</code>) in Neon so the dashboard, not just the Exit Node, has a
+          source of truth for what to display.
+        </li>
+      </ul>
+    </section>
+
+    <section class="panel" aria-label="Standards references">
+      <h2>Standards References</h2>
+      <ul class="source-list">
+        <li>
+          <a href="https://www.wireguard.com/protocol/">WireGuard protocol</a>: the tunnel
+          protocol used between Peer and Exit Node.
+        </li>
+        <li>
+          <a href="https://datatracker.ietf.org/doc/html/rfc7519">RFC 7519</a>: JWT, the typical
+          format for Clerk session and webhook verification.
+        </li>
+      </ul>
+    </section>
+  </main>
+  <script type="module">
+    import mermaid from "https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs";
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "strict",
+      theme: "dark",
+      themeVariables: {
+        fontFamily: 'ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+        darkMode: true,
+        background: "#101114",
+        primaryColor: "rgba(107, 162, 255, 0.14)",
+        primaryBorderColor: "#6ba2ff",
+        primaryTextColor: "#ededec",
+        lineColor: "#97999f",
+        signalColor: "#ededec",
+        signalTextColor: "#ededec",
+        noteBkgColor: "rgba(224, 165, 61, 0.16)",
+        noteTextColor: "#ededec",
+        actorBkg: "#1c1e23",
+        actorBorder: "#97999f",
+        actorTextColor: "#ededec",
+      },
+      flowchart: {
+        htmlLabels: true,
+        curve: "basis",
+        padding: 18,
+      },
+      sequence: {
+        showSequenceNumbers: true,
+        mirrorActors: false,
+        rightAngles: false,
+      },
+    });
+
+    await mermaid.run({ querySelector: ".diagram.mermaid" });
+
+    for (const svg of document.querySelectorAll(".diagram.mermaid svg")) {
+      const viewBox = svg.getAttribute("viewBox");
+      const width = viewBox?.split(/\s+/).map(Number)[2];
+      if (Number.isFinite(width) && width > 0) {
+        svg.style.setProperty("width", `${Math.ceil(width)}px`, "important");
+        svg.style.setProperty("max-width", "none", "important");
+      }
+    }
+  </script>
+</body>
+
+</html>
