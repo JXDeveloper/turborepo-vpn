@@ -4,10 +4,12 @@ After=network.target
 
 [Service]
 Type=simple
-User=www-data
+#todo root might be a bad practice
+User=root
 WorkingDirectory=/opt/releases/current
 
-ExecStart=/usr/bin/node /opt/releases/current/dist/index.js
+#todo nvm node is a bad pratice to be solved in future
+ExecStart=/home/admin/.nvm/versions/node/v24.19.0/bin/node /opt/releases/current/dist/index.js
 
 Restart=always
 RestartSec=5
