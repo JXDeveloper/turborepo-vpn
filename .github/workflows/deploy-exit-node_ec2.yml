@@ -145,4 +145,4 @@ jobs:
       #       -i ~/.ssh/ec2_key \
       #       -o StrictHostKeyChecking=no \
       #       ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
-      #       "curl --fail --silent --show-error http://127.0.0.1:3000/health"
+      #       "curl --fail --silent --show-error http://127.0.0.1:3001/health"
