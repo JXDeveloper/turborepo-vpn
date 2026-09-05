@@ -3,6 +3,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect } from 'react'
 
 import { Link } from '@tanstack/react-router'
+import { Button } from '@renderer/components/ui/button'
 export const Route = createFileRoute('/')({
   component: Index
 })
@@ -22,8 +23,12 @@ function Index() {
         <main className="flex min-h-screen flex-col items-center justify-center gap-6">
           <h1>Welcome to Metro VPN!</h1>
           <div className="flex gap-4">
-            <Link to="/sign-up">Sign Up</Link>
-            <Link to="/sign-in">Sign In</Link>
+            <Button>
+              <Link to="/sign-up">Sign Up</Link>
+            </Button>
+            <Button>
+              <Link to="/sign-in">Sign In</Link>
+            </Button>
           </div>
         </main>
       </Show>
