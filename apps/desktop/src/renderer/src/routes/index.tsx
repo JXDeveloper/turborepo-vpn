@@ -1,85 +1,36 @@
-import { getToken, Show } from '@clerk/electron/react'
-import { createFileRoute } from '@tanstack/react-router'
-import { genKeypair } from '@my-vpn/crypto-utils'
-// import { MouseEvent } from 'react'
+import { Show, useAuth } from '@clerk/electron/react'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { useEffect } from 'react'
 
+import { Link } from '@tanstack/react-router'
+import { Button } from '@renderer/components/ui/button'
 export const Route = createFileRoute('/')({
   component: Index
 })
 
 function Index() {
-  async function handleConnect() {
-    // const regionId = 'us-east'
-    // TODO: regionId is currently hardcoded to 'us-east' for testing.
-    // Yet to be fixed for automatic region selection.
-    const regionId = 'us-east'
-    try {
-      const token = await getToken()
-      if (token == null) throw Error('Not Signed In')
-      // todo: 1. create private and public key
-      // todo: 2. complete request to control panel for creating peer
+  const { isSignedIn } = useAuth()
+  const navigate = useNavigate()
 
-      // 1. Create private and public key
-      const keypair = await genKeypair()
-      console.log(keypair)
-
-      // 2. Complete request to control panel for creating peer
-      console.log('gonna make a request')
-      let response = await fetch('http://localhost:3000/api/vpn/peer/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          publicKey: keypair.publicKey
-        })
-      })
-      const data = await response.json()
-      const configs = data.configs
-
-      console.log(data)
-
-      // todo: 3. get configs and pass them to underlaying native agent
-      // 3. Get configs and attach the generated private key
-      // 4. Pass the configs to D-Bus service (via storeParams)
-      const storeParams = {
-        region: regionId,
-        privateKey: keypair.privateKey,
-        //! i think there is something bad here is hsould not be configs.allowedIps[0] rather it should be
-        //! configs.allowedIps, i think server is not responding with what i want
-        address: configs.allowedIps[0],
-        serverPublicKey: configs.serverPublicKey,
-        endpoint: configs.endpoint,
-        dns: ['10.10.1.2'],
-        allowedIps: ['0.0.0.0/0', '::/0']
-      }
-
-      console.log(storeParams)
-
-      // todo: 4. call the connect function in the underlaying native agent
-      // 5. Call the connect function in the underlying native agent
-      await window.vpn.connect({
-        regionId,
-        storeParams
-      })
-    } catch (err) {
-      // todo implement visual signal for user in app
-      console.log('You may be not authored to do the request')
-      console.error('Connection failed or unauthorized:', err)
+  useEffect(() => {
+    if (isSignedIn) {
+      void navigate({ to: '/dashboard', replace: true })
     }
-    // await window.vpn.disconnect()
-  }
-
-  async function handleDisconnect() {
-    window.vpn.disconnect()
-  }
+  }, [isSignedIn, navigate])
   return (
-    <div className="p-2">
-      <h3>Welcome Home!</h3>
-      <Show when="signed-in">
-        <button onClick={handleConnect}>Connect to Vpn</button>
-        <button onClick={handleDisconnect}>Disconnect</button>
+    <div>
+      <Show when="signed-out">
+        <main className="flex min-h-screen flex-col items-center justify-center gap-6">
+          <h1>Welcome to Metro VPN!</h1>
+          <div className="flex gap-4">
+            <Button>
+              <Link to="/sign-up">Sign Up</Link>
+            </Button>
+            <Button>
+              <Link to="/sign-in">Sign In</Link>
+            </Button>
+          </div>
+        </main>
       </Show>
     </div>
   )
