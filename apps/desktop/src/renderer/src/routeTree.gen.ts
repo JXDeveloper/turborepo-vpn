@@ -14,7 +14,6 @@ import { Route as DashboardRouteRouteImport } from './routes/dashboard/route'
 import { Route as SignInRouteImport } from './routes/sign-in'
 import { Route as SignUpRouteImport } from './routes/sign-up'
 import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
-import { Route as DashboardConnectRouteImport } from './routes/dashboard/connect'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,25 +40,18 @@ const DashboardIndexRoute = DashboardIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DashboardRouteRoute,
 } as any)
-const DashboardConnectRoute = DashboardConnectRouteImport.update({
-  id: '/connect',
-  path: '/connect',
-  getParentRoute: () => DashboardRouteRoute,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/dashboard/connect': typeof DashboardConnectRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/dashboard/connect': typeof DashboardConnectRoute
   '/dashboard': typeof DashboardIndexRoute
 }
 export interface FileRoutesById {
@@ -68,28 +60,14 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRouteRouteWithChildren
   '/sign-in': typeof SignInRoute
   '/sign-up': typeof SignUpRoute
-  '/dashboard/connect': typeof DashboardConnectRoute
   '/dashboard/': typeof DashboardIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/dashboard'
-    | '/sign-in'
-    | '/sign-up'
-    | '/dashboard/connect'
-    | '/dashboard/'
+  fullPaths: '/' | '/dashboard' | '/sign-in' | '/sign-up' | '/dashboard/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/sign-in' | '/sign-up' | '/dashboard/connect' | '/dashboard'
-  id:
-    | '__root__'
-    | '/'
-    | '/dashboard'
-    | '/sign-in'
-    | '/sign-up'
-    | '/dashboard/connect'
-    | '/dashboard/'
+  to: '/' | '/sign-in' | '/sign-up' | '/dashboard'
+  id: '__root__' | '/' | '/dashboard' | '/sign-in' | '/sign-up' | '/dashboard/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -136,23 +114,14 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRouteRoute
     }
-    '/dashboard/connect': {
-      id: '/dashboard/connect'
-      path: '/connect'
-      fullPath: '/dashboard/connect'
-      preLoaderRoute: typeof DashboardConnectRouteImport
-      parentRoute: typeof DashboardRouteRoute
-    }
   }
 }
 
 interface DashboardRouteRouteChildren {
-  DashboardConnectRoute: typeof DashboardConnectRoute
   DashboardIndexRoute: typeof DashboardIndexRoute
 }
 
 const DashboardRouteRouteChildren: DashboardRouteRouteChildren = {
-  DashboardConnectRoute: DashboardConnectRoute,
   DashboardIndexRoute: DashboardIndexRoute,
 }
 
