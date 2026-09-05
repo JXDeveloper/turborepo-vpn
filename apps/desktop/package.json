@@ -29,10 +29,12 @@
     "@electron-toolkit/utils": "^4.0.0",
     "@my-vpn/crypto-utils": "workspace:*",
     "@shurahbil/wireguard-tools-2": "^0.1.2",
+    "@tailwindcss/vite": "^4.3.3",
     "@tanstack/react-router": "^1.170.27",
     "@tanstack/react-router-devtools": "^1.167.1",
     "dbus-next": "^0.10.2",
-    "electron-store": "^11.0.2"
+    "electron-store": "^11.0.2",
+    "tailwindcss": "^4"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
