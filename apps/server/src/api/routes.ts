@@ -6,10 +6,11 @@ import { verifySignature } from "@my-vpn/crypto-utils";
 import { Context, Hono, type Handler, type Next } from "hono";
 import { createMiddleware } from "hono/factory";
 import { WgConfig } from "@shurahbil/wireguard-tools-2";
+import { env } from "../env.js";
 
 function getEndpointAddress(): string {
-  if (process.env.WG_ENDPOINT) {
-    return process.env.WG_ENDPOINT;
+  if (env.wgEndpoint) {
+    return env.wgEndpoint;
   }
   const interfaces = os.networkInterfaces();
   for (const name of Object.keys(interfaces)) {
@@ -27,8 +28,8 @@ function getEndpointAddress(): string {
 }
 
 function getDefaultWanInterface(): string {
-  if (process.env.WG_WAN_INTERFACE) {
-    return process.env.WG_WAN_INTERFACE;
+  if (env.wgWanInterface) {
+    return env.wgWanInterface;
   }
   try {
     const routeOutput = execSync("ip route show default", {
@@ -241,8 +242,7 @@ export async function createPeerRecord(
   const wgConfig = await initWgServerTunnel();
   await addPeerToWgServer(publicKey, allowedIps);
 
-  const serverPublicKey =
-    wgConfig.publicKey || process.env.WG_SERVER_PUBLIC_KEY;
+  const serverPublicKey = wgConfig.publicKey || env.wgServerPublicKey;
 
   if (!serverPublicKey) {
     throw new Error("WireGuard server public key is not configured");
@@ -274,13 +274,14 @@ export async function createPeerRecord(
 const ControlPanelAuthMiddleware = createMiddleware(
   async (c: Context, next: Next) => {
     if (c.req.method === "GET") {
+      // NOTE: GET routes are unauthenticated by design today — the desktop and
+      // mobile clients call them without BACKEND_API_SECRET. Require the
+      // signature (or real user auth) here before exposing /api publicly;
+      // HTTPS (Caddy) encrypts the transport but does not authenticate reads.
       return await next();
     }
 
-    const secret = process.env.BACKEND_API_SECRET;
-    if (!secret) {
-      return c.json({ message: "authentication is not configured" }, 500);
-    }
+    const secret = env.backendApiSecret;
 
     let body: payload;
     try {

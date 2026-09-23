@@ -5,6 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { generateSignature } from "@my-vpn/crypto-utils";
 import { exitNodes } from "@/db/schema";
 import { db } from "@/db/db";
+import { getBackendApiSecret, getVpnApiUrl } from "@/lib/server/env";
 
 export interface Peer {
   id: string;
@@ -28,16 +29,12 @@ export interface CreatedPeer {
   clientConfig: string;
 }
 
-const apiBaseUrl = (
-  process.env.VPN_API_URL || "http://127.0.0.1:3001/api"
-).replace(/\/$/, "");
-
 async function requireAdmin() {
   await auth.protect();
 }
 
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await fetch(`${getVpnApiUrl()}${path}`, {
     ...init,
     cache: "no-store",
   });
@@ -58,10 +55,7 @@ async function signedApiRequest<T>(
   payload: Record<string, unknown> = {},
 ): Promise<T> {
   await requireAdmin();
-  const secret = process.env.BACKEND_API_SECRET;
-  if (!secret) {
-    throw new Error("BACKEND_API_SECRET is not configured");
-  }
+  const secret = getBackendApiSecret();
 
   const signedData = JSON.stringify(payload);
   const signature = await generateSignature(secret, signedData);

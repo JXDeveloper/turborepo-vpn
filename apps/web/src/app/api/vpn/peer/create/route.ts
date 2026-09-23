@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { signedApiRequest } from "@/lib/server/apiRequests";
 
-const allowedOrigin = "http://localhost:5173";
+const allowedOrigin =
+  process.env.CORS_ALLOWED_ORIGIN?.trim() || "http://localhost:5173";
 
 export async function OPTIONS() {
   console.log("we received options request");

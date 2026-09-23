@@ -114,6 +114,24 @@ jobs:
             ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
             "sudo ln -sfn /opt/releases/${{ github.sha }} /opt/releases/current"
 
+      # Single source of truth for runtime config: GitHub Actions secrets/vars
+      # -> /etc/metro-vpn/exit-node.env (loaded by vpn-exit-node.service).
+      # Required repo settings:
+      #   secret BACKEND_API_SECRET, vars WG_ENDPOINT, WG_WAN_INTERFACE (optional)
+      - name: Configure runtime environment
+        run: |
+          ssh \
+            -i ~/.ssh/ec2_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
+            "sudo mkdir -p /etc/metro-vpn && printf '%s\n' \
+              'NODE_ENV=production' \
+              'PORT=3001' \
+              'BACKEND_API_SECRET=${{ secrets.BACKEND_API_SECRET }}' \
+              'WG_ENDPOINT=${{ vars.WG_ENDPOINT }}' \
+              'WG_WAN_INTERFACE=${{ vars.WG_WAN_INTERFACE }}' \
+            | sudo tee /etc/metro-vpn/exit-node.env > /dev/null && sudo chmod 600 /etc/metro-vpn/exit-node.env"
+
       - name: Restart VPN exit node
         run: |
           ssh \
@@ -138,11 +156,11 @@ jobs:
             ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
             "echo 'Current release:' && sudo readlink -f /opt/releases/current && echo 'Expected release:' && echo /opt/releases/${{ github.sha }}"
 
-      # todo: implement health endpoint before it
-      # - name: Verify application
-      #   run: |
-      #     ssh \
-      #       -i ~/.ssh/ec2_key \
-      #       -o StrictHostKeyChecking=no \
-      #       ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
-      #       "curl --fail --silent --show-error http://127.0.0.1:3001/health"
+      # health endpoint implemented in apps/server/src/index.ts (GET /health)
+      - name: Verify application health
+        run: |
+          ssh \
+            -i ~/.ssh/ec2_key \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
+            "curl --fail --silent --show-error http://127.0.0.1:3001/health"

@@ -1,10 +1,14 @@
 {
   "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
   "globalEnv": [
     "ANDROID_HOME",
-    "JAVA_HOME"
+    "JAVA_HOME",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_URL",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_URL",
+    "NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL",
+    "NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL"
   ],
-  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": [
@@ -19,6 +23,14 @@
         "!.next/cache/**",
         "!.next/dev/**",
         "dist/**"
+      ],
+      "env": [
+        "VPN_API_URL",
+        "CORS_ALLOWED_ORIGIN",
+        "VITE_WEB_API_URL",
+        "VITE_WEB_APP_URL",
+        "VITE_CLERK_PUBLISHABLE_KEY",
+        "EXPO_PUBLIC_VPN_API_URL"
       ]
     },
     "lint": {
@@ -35,11 +47,5 @@
       "cache": false,
       "persistent": true
     }
-  },
-  "globalEnv": [
-    "NEXT_PUBLIC_CLERK_SIGN_IN_URL",
-    "NEXT_PUBLIC_CLERK_SIGN_UP_URL",
-    "NEXT_PUBLIC_CLERK_SIGN_IN_FALLBACK_REDIRECT_URL",
-    "NEXT_PUBLIC_CLERK_SIGN_UP_FALLBACK_REDIRECT_URL"
-  ]
+  }
 }

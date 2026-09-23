@@ -1,0 +1,18 @@
+# HTTPS for the exit-node control API.
+#
+# The Hono server stays plain HTTP on 127.0.0.1:3001; Caddy terminates TLS
+# and gets/renews Let's Encrypt certificates automatically.
+# WireGuard's UDP 51820 endpoint is NOT proxied — it stays direct on the host.
+#
+# Setup on the EC2 host:
+#   1. Point a DNS A record (e.g. api.yourdomain.com) at the EC2 public IP
+#   2. sudo apt install caddy
+#   3. Replace api.yourdomain.com below, then:
+#        sudo cp Caddyfile /etc/caddy/Caddyfile
+#        sudo systemctl reload caddy
+#   4. Set the web app's VPN_API_URL=https://api.yourdomain.com/api
+
+api.example.com {
+	encode gzip
+	reverse_proxy 127.0.0.1:3001
+}
