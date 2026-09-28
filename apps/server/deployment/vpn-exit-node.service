@@ -16,5 +16,9 @@ RestartSec=5
 
 Environment=NODE_ENV=production
 
+# Runtime configuration (BACKEND_API_SECRET, PORT, WG_ENDPOINT, ...).
+# Created by CI from GitHub secrets/vars; see .env.example for the keys.
+EnvironmentFile=-/etc/metro-vpn/exit-node.env
+
 [Install]
 WantedBy=multi-user.target

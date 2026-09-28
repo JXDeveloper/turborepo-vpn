@@ -1,28 +1,53 @@
-# Turborepo starter
+# metro-vpn
 
-This Turborepo starter is maintained by the Turborepo core team.
-
-## Using this example
-
-Run the following command:
-
-```sh
-npx create-turbo@latest
-```
+Turborepo monorepo for the metro-vpn product: a WireGuard-based VPN with a web
+control plane, desktop client, mobile client, and self-hosted exit node.
 
 ## What's inside?
 
-This Turborepo includes the following packages/apps:
+| App / package | Description |
+| --- | --- |
+| `apps/web` | Next.js control plane (Clerk auth, Drizzle/Neon) — manages peers, deploys to Vercel |
+| `apps/desktop` | Electron desktop client (TanStack Router, shadcn/ui, D-Bus + Rust native service) |
+| `apps/mobile` | Expo mobile client with a custom WireGuard module |
+| `apps/server` | Hono exit-node server (WireGuard + NAT), runs on EC2 behind Caddy HTTPS |
+| `packages/crypto-utils` | Shared X25519 keypair + HMAC signing helpers |
+| `packages/expo-wireguard` | Expo module wrapping the native WireGuard client |
 
-### Apps and Packages
+## Environment variables
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+No endpoints or secrets are hardcoded — every app reads them from the
+environment. Each app ships a `.env.example`; copy it to `.env` (gitignored)
+and fill in real values.
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+| App | Variable | Purpose |
+| --- | --- | --- |
+| server | `BACKEND_API_SECRET` **(required, secret)** | HMAC secret shared with `apps/web` — validated at startup |
+| server | `PORT` | Control API port (default `3001`) |
+| server | `WG_ENDPOINT` | Public `ip:51820` written into client configs (auto-detected if unset — set it explicitly on EC2) |
+| server | `WG_WAN_INTERFACE` | NAT masquerade interface (auto-detected if unset) |
+| server | `WG_SERVER_PUBLIC_KEY` | Fallback WireGuard server public key |
+| web | `VPN_API_URL` | Exit-node API base (dev default `http://127.0.0.1:3001/api`, required in production) |
+| web | `BACKEND_API_SECRET` **(secret)** | Same secret as the server — signs mutating requests |
+| web | `DATABASE_URL` **(secret)** | Neon/Postgres connection string |
+| web | `CORS_ALLOWED_ORIGIN` | Allowed browser origin for `/api/vpn/peer/create` (default `http://localhost:5173`) |
+| web | `ALLOWED_DEV_ORIGINS` | Comma-separated origins allowed to request `next dev` (e.g. your LAN IP) |
+| web | `NEXT_PUBLIC_CLERK_*` | Clerk redirect URLs (declared in `turbo.json` for cache correctness) |
+| desktop | `VITE_WEB_API_URL` | API base the renderer calls (or `VITE_WEB_APP_URL` → `${URL}/api`) |
+| desktop | `VITE_CLERK_PUBLISHABLE_KEY` | Clerk publishable key |
+| mobile | `EXPO_PUBLIC_VPN_API_URL` | Web app base URL used to create peers |
+
+### HTTPS for the exit node
+
+The control API is served as plain HTTP on the host and put behind **Caddy**,
+which gets and renews Let's Encrypt certificates automatically — see
+[`apps/server/deployment/Caddyfile`](apps/server/deployment/Caddyfile) and
+[`apps/server/README.md`](apps/server/README.md). WireGuard's UDP `51820`
+endpoint is separate and unaffected.
+
+In production, CI writes the server's runtime env to
+`/etc/metro-vpn/exit-node.env` on the EC2 host from GitHub **secrets**
+(`BACKEND_API_SECRET`) and **variables** (`WG_ENDPOINT`, `WG_WAN_INTERFACE`).
 
 ### Utilities
 

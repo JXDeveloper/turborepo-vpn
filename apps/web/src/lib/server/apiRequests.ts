@@ -1,15 +1,12 @@
 import { auth } from "@clerk/nextjs/server";
 import { generateSignature } from "@my-vpn/crypto-utils";
-
-const apiBaseUrl = (
-  process.env.VPN_API_URL || "http://127.0.0.1:3001/api"
-).replace(/\/$/, "");
+import { getBackendApiSecret, getVpnApiUrl } from "@/lib/server/env";
 
 export async function apiRequest<T>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
-  const response = await fetch(`${apiBaseUrl}${path}`, {
+  const response = await fetch(`${getVpnApiUrl()}${path}`, {
     ...init,
     cache: "no-store",
   });
@@ -30,11 +27,7 @@ export async function signedApiRequest<T>(
   payload: Record<string, unknown> = {},
 ): Promise<T> {
   await auth.protect();
-  const secret = process.env.BACKEND_API_SECRET;
-  if (!secret) {
-    throw new Error("BACKEND_API_SECRET is not configured");
-  }
-
+  const secret = getBackendApiSecret();
   const signedData = JSON.stringify(payload);
   const signature = await generateSignature(secret, signedData);
   return apiRequest<T>(path, {

@@ -1,6 +1,7 @@
 import { getToken, Show } from '@clerk/electron/react'
 import { genKeypair } from '@my-vpn/crypto-utils'
 import { createFileRoute } from '@tanstack/react-router'
+import { Button } from '@renderer/components/ui/button'
 
 export const Route = createFileRoute('/dashboard/')({
   component: Dashboard
@@ -72,8 +73,8 @@ function Dashboard() {
       <div className="p-2">
         <h3>Welcome Home!</h3>
         <Show when="signed-in">
-          <button onClick={handleConnect}>Connect to Vpn</button>
-          <button onClick={handleDisconnect}>Disconnect</button>
+          <Button onClick={handleConnect}>Connect to Vpn</Button>
+          <Button onClick={handleDisconnect}>Disconnect</Button>
         </Show>
       </div>
     </div>
