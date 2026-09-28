@@ -105,15 +105,23 @@ jobs:
             -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
             "sudo tar -xzf /tmp/exit-node-${{ github.sha }}.tar.gz -C /opt/releases/${{ github.sha }}"
-
+            
       - name: Update current release
+        run: |
+          ssh \
+          -i ~/.ssh/ec2_key \
+          -o StrictHostKeyChecking=no \
+          ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
+          "sudo ln -sfn /opt/releases/${{ github.sha }} /opt/releases/current"
+            
+      - name: Install systemd service
         run: |
           ssh \
             -i ~/.ssh/ec2_key \
             -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
-            "sudo ln -sfn /opt/releases/${{ github.sha }} /opt/releases/current"
-
+            "sudo cp /opt/releases/${{ github.sha }}/deployment/vpn-exit-node.service /etc/systemd/system/vpn-exit-node.service && \
+            sudo systemctl daemon-reload"
       # Single source of truth for runtime config: GitHub Actions secrets/vars
       # -> /etc/metro-vpn/exit-node.env (loaded by vpn-exit-node.service).
       # Required repo settings:

@@ -2,7 +2,8 @@
   "name": "server",
   "files": [
     "dist/**",
-    "package.json"
+    "package.json",
+    "deployment/vpn-exit-node.service"
   ],
   "type": "module",
   "scripts": {
