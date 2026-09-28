@@ -12,7 +12,7 @@
 #        sudo systemctl reload caddy
 #   4. Set the web app's VPN_API_URL=https://api.yourdomain.com/api
 
-api.example.com {
+ec2-13-60-54-184.eu-north-1.compute.amazonaws.com {
 	encode gzip
 	reverse_proxy 127.0.0.1:3001
 }
