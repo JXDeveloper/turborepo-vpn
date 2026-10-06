@@ -11,10 +11,11 @@ const allowedOrigins = getCorsAllowedOrigins();
  */
 function corsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get("origin");
-  const headers: Record<string, string> = { "Vary": "Origin" };
+  const headers: Record<string, string> = { Vary: "Origin" };
   if (origin && allowedOrigins.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
   }
+  console.log("corsHeaders", headers);
   return headers;
 }
 
@@ -52,7 +53,9 @@ export async function POST(request: Request) {
       { message: "Webhook received successfully", configs: response },
       {
         status: 200,
-        headers: corsHeaders(request),
+        headers: {
+          "Access-Control-Allow-Origin": allowedOrigin,
+        },
       },
     );
   } catch (error) {
@@ -61,7 +64,9 @@ export async function POST(request: Request) {
       { message: "Error processing webhook" },
       {
         status: 500,
-        headers: corsHeaders(request),
+        headers: {
+          "Access-Control-Allow-Origin": allowedOrigin,
+        },
       },
     );
   }
