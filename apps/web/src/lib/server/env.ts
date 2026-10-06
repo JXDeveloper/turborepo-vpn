@@ -40,9 +40,13 @@ export function getBackendApiSecret(): string {
   return required("BACKEND_API_SECRET");
 }
 
-/** Browser origin allowed to call /api/vpn/peer/create. */
-export function getCorsAllowedOrigin(): string {
-  return (
-    process.env.CORS_ALLOWED_ORIGIN?.trim() || "http://localhost:5173"
-  );
+/**
+ * Browser origins allowed to call /api/vpn/peer/create, as a
+ * comma-separated list (e.g. `http://localhost:5173,my-vpn://renderer`).
+ */
+export function getCorsAllowedOrigins(): string[] {
+  return (process.env.CORS_ALLOWED_ORIGIN?.trim() || "http://localhost:5173")
+    .split(",")
+    .map((origin) => origin.trim())
+    .filter(Boolean);
 }
