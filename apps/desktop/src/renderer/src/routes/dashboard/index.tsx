@@ -23,7 +23,7 @@ function Dashboard() {
       console.log(keypair)
       // 2. Complete request to control panel for creating peer
       console.log('gonna make a request')
-      let response = await fetch('http://localhost:3000/api/vpn/peer/create', {
+      let response = await fetch('https://www.horizon-tex.com/api/vpn/peer/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
