@@ -10,11 +10,13 @@ const allowedOrigins = getCorsAllowedOrigins();
  * never a list), and always vary caches on Origin.
  */
 function corsHeaders(request: Request): Record<string, string> {
-  const origin = request.headers.get("origin");
-  const headers: Record<string, string> = { "Vary": "Origin" };
+  const origin = request.headers.get("Origin");
+  console.log("corsHeaders origin", origin);
+  const headers: Record<string, string> = { Vary: "Origin" };
   if (origin && allowedOrigins.includes(origin)) {
     headers["Access-Control-Allow-Origin"] = origin;
   }
+  console.log("corsHeaders", headers);
   return headers;
 }
 
