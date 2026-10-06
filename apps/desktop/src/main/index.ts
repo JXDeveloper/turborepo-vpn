@@ -19,6 +19,9 @@ const clerk = createClerkBridge({
 })
 
 const fapiHost = 'nearby-jawfish-86.clerk.accounts.dev'
+const CONTROL_PANEL_ORIGIN = 'https://www.horizon-tex.com'
+// Only allow the control panel on localhost while developing locally
+const devConnectSrc = is.dev ? 'ws://localhost:5173 http://localhost:3000' : ''
 
 if (clerk.isPrimaryInstance) {
   app.whenReady().then(async () => {
@@ -78,7 +81,7 @@ if (clerk.isPrimaryInstance) {
             [
               "default-src 'self'",
               `script-src 'self' 'unsafe-inline' https://${fapiHost} https://challenges.cloudflare.com`,
-              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com https://*.sentry.io https://*.clerk.com ws://localhost:5173 http://localhost:3000`,
+              `connect-src 'self' https://${fapiHost} https://clerk-telemetry.com ${CONTROL_PANEL_ORIGIN} ${devConnectSrc} https://*.sentry.io https://*.clerk.com`,
               "img-src 'self' https://img.clerk.com data:",
               "style-src 'self' 'unsafe-inline'",
               "worker-src 'self' blob:",
