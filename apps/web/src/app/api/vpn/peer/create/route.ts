@@ -1,15 +1,29 @@
 import { NextResponse } from "next/server";
 import { signedApiRequest } from "@/lib/server/apiRequests";
+import { getCorsAllowedOrigins } from "@/lib/server/env";
 
-const allowedOrigin =
-  process.env.CORS_ALLOWED_ORIGIN?.trim() || "http://localhost:5173";
+const allowedOrigins = getCorsAllowedOrigins();
 
-export async function OPTIONS() {
+/**
+ * CORS headers for an incoming request: echo the caller's origin only
+ * when it is in the allowlist (a response may carry a single origin,
+ * never a list), and always vary caches on Origin.
+ */
+function corsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get("origin");
+  const headers: Record<string, string> = { "Vary": "Origin" };
+  if (origin && allowedOrigins.includes(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
+}
+
+export async function OPTIONS(request: Request) {
   console.log("we received options request");
   return new NextResponse(null, {
     status: 204,
     headers: {
-      "Access-Control-Allow-Origin": allowedOrigin,
+      ...corsHeaders(request),
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Access-Control-Allow-Headers": "Content-Type, Authorization",
     },
@@ -38,9 +52,7 @@ export async function POST(request: Request) {
       { message: "Webhook received successfully", configs: response },
       {
         status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin,
-        },
+        headers: corsHeaders(request),
       },
     );
   } catch (error) {
@@ -49,9 +61,7 @@ export async function POST(request: Request) {
       { message: "Error processing webhook" },
       {
         status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin,
-        },
+        headers: corsHeaders(request),
       },
     );
   }

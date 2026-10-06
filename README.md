@@ -30,7 +30,7 @@ and fill in real values.
 | web | `VPN_API_URL` | Exit-node API base (dev default `http://127.0.0.1:3001/api`, required in production) |
 | web | `BACKEND_API_SECRET` **(secret)** | Same secret as the server — signs mutating requests |
 | web | `DATABASE_URL` **(secret)** | Neon/Postgres connection string |
-| web | `CORS_ALLOWED_ORIGIN` | Allowed browser origin for `/api/vpn/peer/create` (default `http://localhost:5173`) |
+| web | `CORS_ALLOWED_ORIGIN` | Comma-separated browser origins allowed for `/api/vpn/peer/create` (default `http://localhost:5173`, e.g. `http://localhost:5173,my-vpn://renderer`) |
 | web | `ALLOWED_DEV_ORIGINS` | Comma-separated origins allowed to request `next dev` (e.g. your LAN IP) |
 | web | `NEXT_PUBLIC_CLERK_*` | Clerk redirect URLs (declared in `turbo.json` for cache correctness) |
 | desktop | `VITE_WEB_API_URL` | API base the renderer calls (or `VITE_WEB_APP_URL` → `${URL}/api`) |
