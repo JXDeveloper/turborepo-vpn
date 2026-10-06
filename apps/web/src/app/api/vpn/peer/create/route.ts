@@ -53,9 +53,7 @@ export async function POST(request: Request) {
       { message: "Webhook received successfully", configs: response },
       {
         status: 200,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin,
-        },
+        headers: corsHeaders(request),
       },
     );
   } catch (error) {
@@ -64,9 +62,7 @@ export async function POST(request: Request) {
       { message: "Error processing webhook" },
       {
         status: 500,
-        headers: {
-          "Access-Control-Allow-Origin": allowedOrigin,
-        },
+        headers: corsHeaders(request),
       },
     );
   }
