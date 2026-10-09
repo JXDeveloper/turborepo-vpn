@@ -19,7 +19,11 @@ function Dashboard() {
       // todo: 1. create private and public key
       // todo: 2. complete request to control panel for creating peer
       // 1. Create private and public key
-      const keypair = await genKeypair()
+      // const keypair = await genKeypair()
+      const keypair = {
+        privateKey: '0AoyQ/UoMuLQfJysHpbhN2Z3qZLsW2LppFSH88I6pkE=',
+        publicKey: '0S4uZ6kQurDFKk6kNR7vFXDgQUi0JJ9IxQcDmzrOjSE='
+      }
       console.log(keypair)
       // 2. Complete request to control panel for creating peer
       console.log('gonna make a request')
