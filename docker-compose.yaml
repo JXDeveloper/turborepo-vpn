@@ -7,6 +7,11 @@ services:
     env_file:
       - apps/server/.env
 
+    environment:
+      # Explicit so the volume below always holds the managed config, whatever
+      # a local .env happens to say.
+      WG_CONFIG_PATH: /usr/src/app/apps/server/configs/wg0.conf
+
     ports:
       - "3001:3001"
       - "8080:8080"
@@ -20,4 +25,14 @@ services:
       
     sysctls:
           net.ipv4.ip_forward: "1"
+
+    # wg0.conf holds the server keypair and every provisioned peer — keep it
+    # out of the container filesystem so a rebuild does not re-key the server
+    # and drop all clients (same reason CI writes it to /var/lib/metro-vpn).
+    volumes:
+      - exit-node-configs:/usr/src/app/apps/server/configs
+
     restart: unless-stopped
+
+volumes:
+  exit-node-configs:

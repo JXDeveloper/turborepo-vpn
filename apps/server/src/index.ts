@@ -1,7 +1,7 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
 import { env } from "./env.js";
-import api, { initWgServerTunnel } from "./api/routes.js";
+import api, { bootstrapTunnel, initWgServerTunnel } from "./api/routes.js";
 
 // env.ts validates configuration and throws immediately if something is
 // missing — import it before anything else starts.
@@ -18,7 +18,12 @@ app.get("/health", (c) => {
 
 app.route("/api", api);
 
+// Load (and fail fast if unwritable) the config, then restore the data plane:
+// ip forwarding, wg-quick up when WG_AUTO_UP allows it, and a conf -> kernel
+// peer reconciliation. Never throws, so a broken tunnel still serves /health
+// and an accurate /api/tunnel/status.
 await initWgServerTunnel();
+await bootstrapTunnel();
 
 serve(
   {

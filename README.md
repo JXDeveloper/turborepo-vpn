@@ -24,9 +24,11 @@ and fill in real values.
 | --- | --- | --- |
 | server | `BACKEND_API_SECRET` **(required, secret)** | HMAC secret shared with `apps/web` — validated at startup |
 | server | `PORT` | Control API port (default `3001`) |
-| server | `WG_ENDPOINT` | Public `ip:51820` written into client configs (auto-detected if unset — set it explicitly on EC2) |
+| server | `WG_ENDPOINT` | Public `ip:51820` written into client configs (tries EC2 IMDS then a public interface — set it explicitly on EC2) |
 | server | `WG_WAN_INTERFACE` | NAT masquerade interface (auto-detected if unset) |
 | server | `WG_SERVER_PUBLIC_KEY` | Fallback WireGuard server public key |
+| server | `WG_CONFIG_PATH` | Config file the server manages (production: `/var/lib/metro-vpn/configs/wg0.conf`, outside the release dir) |
+| server | `WG_AUTO_UP` | Bring the interface up and reconcile peers at boot (default `true` when `NODE_ENV=production`) |
 | web | `VPN_API_URL` | Exit-node API base (dev default `http://127.0.0.1:3001/api`, required in production) |
 | web | `BACKEND_API_SECRET` **(secret)** | Same secret as the server — signs mutating requests |
 | web | `DATABASE_URL` **(secret)** | Neon/Postgres connection string |

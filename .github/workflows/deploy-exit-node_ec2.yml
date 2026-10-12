@@ -113,6 +113,32 @@ jobs:
           -o StrictHostKeyChecking=no \
           ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
           "sudo ln -sfn /opt/releases/${{ github.sha }} /opt/releases/current"
+
+      # wg0.conf holds the server keypair and every provisioned peer. It used to
+      # live inside /opt/releases/<sha>, which the app package does not ship, so
+      # each deploy generated a NEW keypair with ZERO peers and every client
+      # provisioned before that release stopped connecting.
+      - name: Persist WireGuard state
+        run: |
+          ssh \
+          -i ~/.ssh/ec2_key \
+          -o StrictHostKeyChecking=no \
+          ${{ secrets.EC2_METRO_VPN_USER }}@${{ secrets.EC2_METRO_VPN_HOST }} \
+          'set -e
+           STATE_DIR=/var/lib/metro-vpn/configs
+           sudo mkdir -p "$STATE_DIR"
+           if [ ! -f "$STATE_DIR/wg0.conf" ]; then
+             OLD_CONF=$(sudo ls -t /opt/releases/*/configs/wg0.conf 2>/dev/null | head -n 1 || true)
+             if [ -n "$OLD_CONF" ]; then
+               sudo cp "$OLD_CONF" "$STATE_DIR/wg0.conf"
+               sudo chmod 600 "$STATE_DIR/wg0.conf"
+               echo "Migrated WireGuard state from $OLD_CONF"
+             else
+               echo "No previous wg0.conf found: a fresh keypair will be generated"
+             fi
+           else
+             echo "WireGuard state already persisted at $STATE_DIR/wg0.conf"
+           fi'
             
       - name: Install systemd service
         run: |
@@ -125,7 +151,11 @@ jobs:
       # Single source of truth for runtime config: GitHub Actions secrets/vars
       # -> /etc/metro-vpn/exit-node.env (loaded by vpn-exit-node.service).
       # Required repo settings:
-      #   secret BACKEND_API_SECRET, vars WG_ENDPOINT, WG_WAN_INTERFACE (optional)
+      #   secret BACKEND_API_SECRET
+      #   var   WG_ENDPOINT  (public ip:51820 — without it clients get an
+      #                       unreachable address: the server would otherwise
+      #                       auto-detect the private VPC ip)
+      #   var   WG_WAN_INTERFACE (optional, auto-detected)
       - name: Configure runtime environment
         run: |
           ssh \
@@ -138,6 +168,8 @@ jobs:
               'BACKEND_API_SECRET=${{ secrets.BACKEND_API_SECRET }}' \
               'WG_ENDPOINT=${{ vars.WG_ENDPOINT }}' \
               'WG_WAN_INTERFACE=${{ vars.WG_WAN_INTERFACE }}' \
+              'WG_CONFIG_PATH=/var/lib/metro-vpn/configs/wg0.conf' \
+              'WG_AUTO_UP=true' \
             | sudo tee /etc/metro-vpn/exit-node.env > /dev/null && sudo chmod 600 /etc/metro-vpn/exit-node.env"
 
       - name: Restart VPN exit node
